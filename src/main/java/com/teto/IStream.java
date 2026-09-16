@@ -30,6 +30,14 @@ public interface IStream {
         return null;
     }
 
+    default FileInputStream fileInputStream(String path) {
+        try {
+            return new FileInputStream(path);
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+    }
+
     default OutputStream stringOutputStream() {
         return new ByteArrayOutputStream();
     }
