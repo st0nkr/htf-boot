@@ -120,9 +120,26 @@ public class XmlParser  {
             Long.parseLong(scanInfoElement.getAttribute("numservices")), scanInfoElement.getAttribute("services"));
   }
 
-  protected static Address parseAddress(Element addressElement) {
-    validateNodeName(addressElement, ADDRESS);
-    return new Address(addressElement.getAttribute("addr"), addressElement.getAttribute("addrtype"));
+  protected static Address parseAddress(Element elem) {
+      validateNodeName(elem, ADDRESS);
+
+      String addr = elem.getAttribute("addr");
+      String addrType = elem.getAttribute("addrtype");
+      String vendor = elem.getAttribute("vendor");
+      String mac = (vendor != null) ? addr: null;
+    return new Address(addr, addrType, mac, vendor);
+  }
+  protected static List<Address> parseAddresses(Element[] elems) {
+    final List<Address> addresses = new ArrayList<>();
+    for(Element elem : elems) {
+      validateNodeName(elem, ADDRESS);
+      String addr = elem.getAttribute("addr");
+      String addrType = elem.getAttribute("addrtype");
+      String vendor = elem.getAttribute("vendor");
+      String mac = (vendor != null) ? addr: null;
+      addresses.add(new Address(addr, addrType, mac, vendor));
+    }
+     return addresses;
   }
 
   protected static Trace parseTrace(Element e) {
@@ -214,9 +231,10 @@ public class XmlParser  {
     }
     validateNodeName(el, "hosthint");
     var status = parseStatus(getSingleChildElement(el, STATUS));
-    var address = parseAddress(getSingleChildElement(el, ADDRESS));
+    Element[] addrs = getMultiChildElement(el, ADDRESS);
+    var addresses = parseAddresses(addrs);
     var hostNames = parseHostNames(getSingleChildElement(el, "hostnames"));
-    return new HostHint(status, address, hostNames);
+    return new HostHint(status, addresses, hostNames);
   }
 
   protected static HostName parseHostName(Element el) {
@@ -452,7 +470,8 @@ public class XmlParser  {
     validateNodeName(el, "host");
     Trace trace = parseTrace(getSingleChildElement(el,"trace"));
     Host ret = new Host(el.getAttribute("starttime"), el.getAttribute("endtime"),
-            parseStatus(getSingleChildElement(el, STATUS)), parseAddress(getSingleChildElement(el, ADDRESS)),
+            parseStatus(getSingleChildElement(el, STATUS)),
+            parseAddresses(getMultiChildElement(el, ADDRESS)),
             parseHostNames(getSingleChildElement(el, "hostnames")),
             parsePorts(getSingleChildElement(el, "ports"), prov),
             parseHostScript(getSingleChildElement(el,"hostscript")),

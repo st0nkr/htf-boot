@@ -109,15 +109,12 @@ public class NmapRun  {
         return null;
     }
 
-    public List<String> getHops() {
-        List<Host> hsts = getHosts();
-        if(hsts == null || hsts.size() != 1) {
-            return null;
-        }
-        Host hst = hsts.get(0);
+    public List<String> getHops(Host hst) {
+        final List<String> addrs = new ArrayList<>();
         if(hst == null) {
             return null;
         }
+
         Trace trace = hst.getTrace();
         if(trace == null) {
             return null;
@@ -126,7 +123,7 @@ public class NmapRun  {
         if(hops == null) {
             return null;
         }
-        final List<String> addrs = new ArrayList<>();
+
         for(Hop hop : hops) {
             if(hop != null && hop.getIpAddr() != null) {
                 addrs.add(hop.getIpAddr());

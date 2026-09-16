@@ -9,22 +9,30 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "known_service")
 public class KnownService {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "name")
     private String name;
 
-    @Column(name = "protocol")
     private String protocol;
 
-    @Column(name = "port_number")
     private Long portNumber;
 
-    @Column(name = "comment")
+    @Column(columnDefinition = "TEXT")
     private String comment;
 
-    @Column(name = "use_frequency")
     private double useFrequency;
+
+    @Override
+    public String toString() {
+        return "KnownService{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", protocol='" + protocol + '\'' +
+                ", portNumber=" + portNumber +
+                ", comment='" + comment + '\'' +
+                ", useFrequency=" + useFrequency +
+                '}';
+    }
 }

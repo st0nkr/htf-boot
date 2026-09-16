@@ -5,7 +5,7 @@ import com.teto.IIPAddresses;
 import com.teto.IOptional;
 import com.teto.IVersionNumber;
 import com.teto.command.Context;
-import com.teto.command.nmap.CreateNMapScan;
+import com.teto.command.nmap.CreateNMapScanFromFile;
 import com.teto.command.nmap.GuessOSName;
 import com.teto.domain.cve.CVE;
 import com.teto.domain.difficulty.Difficulty;
@@ -23,118 +23,127 @@ import java.util.*;
 import static com.teto.Answer.*;
 import static com.teto.domain.difficulty.Difficulty.GoodLuck;
 
-public class NMapParser  implements IVersionNumber,INMapUtils,IOptional, IIPAddresses {
+public class NMapParser implements IVersionNumber,INMapUtils,IOptional, IIPAddresses {
 
     public ScannedTargets parse(Context ctx, ParserRequest req) {
         ScannedTargets ret = new ScannedTargets();
         final Provenance provenance = req.getProvenance();
-        final Optional<NmapRun> scan = ctx.apply(new CreateNMapScan(req.getOutputFileName(), req.getProvenance().name()));
-        Target osTarget;
+        final Optional<NmapRun> scan = ctx.apply(new CreateNMapScanFromFile(req.getOutputFileName(), req.getProvenance().name()));
+
         if (isPresent(scan)) {
-            addPorts(req.getParent(), getOpenPorts(scan.get()));
-            Integer mtu = scan.get().getMTU();
-            if(mtu != null) {
-                req.getParent().setMtu(mtu);
-            }
-            List<String> hops = scan.get().getHops();
-            if(hops != null && !hops.isEmpty()) {
-                for (String hop : hops) {
-                    if (!hop.equals(req.getParent().getIpAddress())) {
-                        Target t = new Target();
-                        t.setProvenance(provenance.name());
-                        t.setParentType(req.getParent().getTargetType());
-                        t.setLevel(req.getParent().getLevel() + 1);
-                        t.setIpAddress(hop);
-                        if (isValidIPV4(hop)) {
-                            t.setTargetType(TargetType.Ipv4.name());
-                        } else {
-                            if (isValidIPV6(hop)) {
-                                t.setTargetType(TargetType.Ipv6.name());
+            List<Host> hosts = scan.get().getHosts();
+            for (Host host : hosts) {
+                Target parent = createTarget(req.getParent(), host);
+                List<Port> openPorts = getOpenPorts(host);
+                if (openPorts != null && !openPorts.isEmpty()) {
+                    addPorts(parent, openPorts);
+                }
+                Integer mtu = scan.get().getMTU();
+                if (mtu != null) {
+                    parent.setMtu(mtu);
+                }
+                Address addr = mergeAddresses(host.getAddresses());
+                parent.setMacAddress(addr.getMacAddr());
+                parent.setIpAddress(addr.getAddr());
+                parent.setTargetType(addr.getAddrType());
+                parent.setVendor(addr.getVendor());
+                parent.setName(addr.getVendor());
+                ret.getTargets().add(parent);
+
+                final List<String> hops = scan.get().getHops(host);
+                if (hops != null && !hops.isEmpty()) {
+                    for (String hop : hops) {
+                        if (!hop.equals(req.getParent().getIpAddress())) {
+                            Target t = new Target();
+                            t.setProvenance(provenance.name());
+                            t.setParentType(parent.getTargetType());
+                            t.setLevel(parent.getLevel() + 1);
+                            t.setIpAddress(hop);
+                            if (isValidIPV4(hop)) {
+                                t.setTargetType(TargetType.Ipv4.name());
+                            } else {
+                                if (isValidIPV6(hop)) {
+                                    t.setTargetType(TargetType.Ipv6.name());
+                                }
+                            }
+                            ret.getTargets().add(t);
+                        }
+                    }
+                }
+                List<ServicePort> servicePorts = createServicePorts(ctx, parent, provenance, getAllPorts(host));
+                ret.getServicePorts().addAll(servicePorts);
+                parent.setSuitableForIdleScan(isSuitableForIdleScan(ctx, host));
+                parent.setSuitableForZombieScan(isSuitableForZombieScan(ctx, host));
+                parent.setDifficulty(getScanDifficulty(ctx, host));
+                Target osTarget = getOperatingSystem(ctx, host);
+                if (osTarget == null) {
+                    osTarget = req.getParent();
+                } else {
+                    osTarget.setLevel(req.getParent().getLevel() + 1);
+                    osTarget.setUri(req.getParent().getUri());
+                    osTarget.setParentId(req.getParent().getId());
+                    osTarget.setParentType(req.getParent().getTargetType());
+                    osTarget.setTargetType(TargetType.OperatingSystem.name());
+                    osTarget.setUri("?");
+                    osTarget.setName("?");
+
+                    Optional<String> osName = ctx.apply(new GuessOSName(host));
+                    if (isPresent(osName)) {
+                        osTarget.setUnderlyingSystem(osName.get());
+                        osTarget.setName(osName.get());
+                        osTarget.setUri(osName.get());
+                    }
+                    if (isEmptyString(osTarget.getIpAddress())) {
+                        String ip = getIpAddress(osTarget.getUnderlyingCpe());
+                        osTarget.setIpAddress(ip);
+                    }
+                }
+                ret.getTargets().add(osTarget);
+                final Collection<Target> cpes = createCPEs(ctx, host);
+                if (cpes != null) {
+                    ret.getTargets().addAll(cpes);
+                }
+
+                final List<Target> techs = getProductTechs(ctx, host);
+                if (techs != null && !techs.isEmpty()) {
+
+                    techs.forEach(tech -> {
+                        tech.setIpAddress(req.getParent().getIpAddress());
+                        String version = getVersionNumber(ctx, tech.getName());
+                        if (version != null) {
+                            tech.setVersion(version);
+                        }
+                        if (req.getParent().getUnderlyingSystem() == null) {
+                            if (tech.getUnderlyingSystem() != null) {
+                                req.getParent().setUnderlyingSystem(tech.getUnderlyingSystem());
+                                req.getParent().setOsFamily(tech.getOsFamily());
                             }
                         }
-                        ret.getTargets().add(t);
-                    }
+                        tech.setParentId(req.getParent().getId());
+                        tech.setParentType(req.getParent().getTargetType());
+                        tech.setUri(req.getParent().getUri());
+                        tech.setProvenance(provenance.name());
+                        tech.setLevel(req.getParent().getLevel() + 1);
+                    });
+                    ret.getTargets().addAll(techs);
                 }
-            }
-            List<ServicePort> servicePorts = createServicePorts(ctx, req.getParent(), provenance, getAllPorts(scan.get()));
-            ret.setServicePorts(servicePorts);
-            ret.setIsSuitableForIdleScan(isSuitableForIdleScan(ctx, scan.get()));
-            ret.setIsSuitableForZombieScan(isSuitableForZombieScan(ctx, scan.get()));
-            ret.setDifficulty(getScanDifficulty(ctx, scan.get()));
-            osTarget = getOperatingSystem(ctx, scan.get());
-            if(osTarget == null) {
-                osTarget = req.getParent();
-            } else {
-                osTarget.setLevel(req.getParent().getLevel()+1);
-                osTarget.setUri(req.getParent().getUri());
-                osTarget.setParentId(req.getParent().getId());
-                osTarget.setParentType(req.getParent().getTargetType());
-                osTarget.setTargetType(TargetType.OperatingSystem.name());
-                osTarget.setUri("?");
-                osTarget.setName("?");
 
-                Optional<String> osName = ctx.apply(new GuessOSName(scan.get()));
-                if (isPresent(osName)) {
-                    osTarget.setUnderlyingSystem(osName.get());
-                    osTarget.setName(osName.get());
-                    osTarget.setUri(osName.get());
+                final List<CVE> cves = getCVEs(ctx, host);
+                if (cves != null && !cves.isEmpty()) {
+                    final Target finalOsTarget1 = osTarget;
+                    cves.forEach(cve -> {
+                        cve.setSource(finalOsTarget1.getUri());
+                        cve.setParentId(req.getParent().getId());
+                        cve.setProvenance(provenance);
+                        cve.setUnderlyingCpe(finalOsTarget1.getCpe());
+                        cve.setParentType(req.getParent().getTargetType());
+                        cve.setUnderLyingSystem(finalOsTarget1.getUnderlyingSystem());
+                        cve.setParentId(req.getParent().getId());
+                        cve.setLevel(req.getParent().getLevel() + 1);
+                    });
+                    ret.getCves().addAll(cves);
                 }
-                if(isEmptyString(osTarget.getIpAddress())){
-                    String ip = getIpAddress(osTarget.getUnderlyingCpe());
-                    osTarget.setIpAddress(ip);
-                }
-            }
-            ret.getTargets().add(osTarget);
-            final Collection<Target> osses = createOperatingSystems(ctx, scan.get());
-            if(osses != null) {
-                //ret.getTargets().addAll(osses);
-            }
-
-            final Collection<Target> cpes = createCPEs(ctx, scan.get());
-            if(cpes != null) {
-                ret.getTargets().addAll(cpes);
-            }
-            final List<Target> techs = getProductTechs(ctx, scan.get());
-            if(techs != null && !techs.isEmpty()) {
-
-                techs.forEach(tech -> {
-                    tech.setIpAddress(req.getParent().getIpAddress());
-                    String version  = getVersionNumber(ctx, tech.getName());
-                    if(version != null) {
-                        tech.setVersion(version);
-                    }
-                    if(req.getParent().getUnderlyingSystem() == null) {
-                        if(tech.getUnderlyingSystem() != null) {
-                            req.getParent().setUnderlyingSystem(tech.getUnderlyingSystem());
-                            req.getParent().setOsFamily(tech.getOsFamily());
-                        }
-                    }
-                    tech.setParentId(req.getParent().getId());
-                    tech.setParentType(req.getParent().getTargetType());
-                    tech.setUri(req.getParent().getUri());
-                    tech.setProvenance(provenance.name());
-                    tech.setLevel(req.getParent().getLevel()+1);
-                });
-                ret.getTargets().addAll(techs);
-            }
-
-            final List<CVE> cves = getCVEs(ctx, scan.get());
-            if(cves != null && !cves.isEmpty()) {
-                final Target finalOsTarget1 = osTarget;
-                cves.forEach(cve -> {
-                    cve.setSource(finalOsTarget1.getUri());
-                    cve.setParentId(req.getParent().getId());
-                    cve.setProvenance(provenance);
-                    cve.setUnderlyingCpe(finalOsTarget1.getCpe());
-                    cve.setParentType(req.getParent().getTargetType());
-                    cve.setUnderLyingSystem(finalOsTarget1.getUnderlyingSystem());
-                    cve.setParentId(req.getParent().getId());
-                    cve.setLevel(req.getParent().getLevel()+1);
-                });
-                ret.getCves().addAll(cves);
-            }
-
-            final List<Target> services = createServiceTargets(ctx, scan.get(), osTarget);
+                final List<Target> services = createServiceTargets(ctx, host, osTarget);
 
             if (services != null && !services.isEmpty()) {
                 final Target finalOsTarget = osTarget;
@@ -145,23 +154,23 @@ public class NMapParser  implements IVersionNumber,INMapUtils,IOptional, IIPAddr
                     s.setParentType(req.getParent().getTargetType());
                 });
 
-                List<NSEScript> scripts = createScripts(ctx, scan.get());
-                if(scripts != null && !scripts.isEmpty()) {
-                    for(NSEScript script : scripts) {
-                        if(script.getServicePorts() != null) {
-                            for(ServicePort sp : script.getServicePorts()) {
+                List<NSEScript> scripts = createScripts(ctx, host);
+                if (scripts != null && !scripts.isEmpty()) {
+                    for (NSEScript script : scripts) {
+                        if (script.getServicePorts() != null) {
+                            for (ServicePort sp : script.getServicePorts()) {
                                 sp.setProvenance(provenance.name());
                                 sp.setParentId(req.getParent().getId());
                                 sp.setIpAddress(req.getParent().getIpAddress());
                             }
                             ret.getServicePorts().addAll(script.getServicePorts());
                         }
-                        if(script.getInfo() != null) {
+                        if (script.getInfo() != null) {
                             NSEInfo info = script.getInfo();
-                            if(info.getTargets() != null) {
-                                for(TargetType tt : info.getTargets().keySet()) {
+                            if (info.getTargets() != null) {
+                                for (TargetType tt : info.getTargets().keySet()) {
                                     Collection<String> targets = info.getTargets().get(tt);
-                                    for(String target : targets) {
+                                    for (String target : targets) {
                                         Target ua = new Target();
                                         ua.setTargetType(tt.name());
                                         ua.setParentId(req.getParent().getId());
@@ -177,7 +186,7 @@ public class NMapParser  implements IVersionNumber,INMapUtils,IOptional, IIPAddr
                                 }
                             }
                         }
-                        if(script.getWafs() != null) {
+                        if (script.getWafs() != null) {
                             script.getWafs().forEach(waf -> {
                                 waf.setLevel(req.getParent().getLevel() + 1);
                                 waf.setProvenance(provenance.name());
@@ -186,13 +195,13 @@ public class NMapParser  implements IVersionNumber,INMapUtils,IOptional, IIPAddr
                             });
                             ret.getWafs().addAll(script.getWafs());
                         }
-                        if(script.getTables() != null && !script.getTables().isEmpty()) {
-                            for(Table table : script.getTables()) {
+                        if (script.getTables() != null && !script.getTables().isEmpty()) {
+                            for (Table table : script.getTables()) {
                                 String key = table.getKey();
-                                if("Allowed User Agents".equals(key)) {
+                                if ("Allowed User Agents".equals(key)) {
                                     if (table.getElems() != null && !table.getElems().isEmpty()) {
 
-                                        for(Elem agent : table.getElems()) {
+                                        for (Elem agent : table.getElems()) {
                                             Target ua = new Target();
                                             ua.setTargetType(TargetType.UserAgent.name());
                                             ua.setParentId(req.getParent().getId());
@@ -211,11 +220,11 @@ public class NMapParser  implements IVersionNumber,INMapUtils,IOptional, IIPAddr
                         }
                     }
                 }
-                for(var service : services) {
+                for (var service : services) {
                     service.setParentId(req.getParent().getId());
                     service.setParentType(req.getParent().getTargetType());
-                    service.setUri(osTarget.getIpAddress()+":"+service.getPortNumber());
-                    service.setLevel(req.getParent().getLevel()+1);
+                    service.setUri(osTarget.getIpAddress() + ":" + service.getPortNumber());
+                    service.setLevel(req.getParent().getLevel() + 1);
                     service.setVerified(Boolean.TRUE);
                     service.setIpAddress(osTarget.getIpAddress());
                     service.setUnderlyingSystem(osTarget.getTargetType());
@@ -241,11 +250,21 @@ public class NMapParser  implements IVersionNumber,INMapUtils,IOptional, IIPAddr
                 //ret.getTargets().addAll(services);
             }
         }
+    }
         ret.getTargets().forEach(target -> target.setProvenance(provenance.name()));
         ret.getCves().forEach(cve -> {
             cve.setProvenance(provenance);
         });
         return ret;
+    }
+
+    private Target createTarget(Target parent, Host host) {
+        Target t = new Target();
+        t.setParentType(parent.getTargetType());
+        t.setLevel(parent.getLevel()+1);
+        t.setParentId(parent.getId());
+
+        return t;
     }
 
     private List<ServicePort> createServicePorts(Context ctx, Target parent, Provenance prov, List<Port> ports) {
@@ -365,77 +384,65 @@ public class NMapParser  implements IVersionNumber,INMapUtils,IOptional, IIPAddr
         return false;
     }
 
-    private List<Port> getAllPorts(NmapRun nmap) {
+    private List<Port> getAllPorts(Host host) {
         final List<Port> ports = new ArrayList<>();
-        nmap.getHosts().forEach(host -> {
-            if(host.getPorts() != null && host.getPorts().getPorts() != null) {
-                ports.addAll(host.getPorts().getPorts());
-            }
-        });
-        return ports;
-    }
-    private List<Port> getOpenPorts(NmapRun nmap) {
-        final List<Port> ports = new ArrayList<>();
-        nmap.getHosts().forEach(host -> {
-            if(host.getPorts() != null && host.getPorts().getPorts() != null) {
-                host.getPorts().getPorts().forEach(port -> {
-                    if(isPortOpen(port)) {
-                        ports.add(port);
-                    }
-                });
-            }
-        });
-        return ports;
-    }
-
-    private Difficulty getScanDifficulty(Context ctx, NmapRun nmap) {
-        TcpSequence seq = getTcpSSequence(ctx, nmap);
-        if(seq == null) {
-            return GoodLuck;
+        if(host.getPorts() != null && host.getPorts().getPorts() != null) {
+            ports.addAll(host.getPorts().getPorts());
         }
-        return Difficulty.fromIndex(seq.getIndex());
+        return ports;
+    }
+    private List<Port> getOpenPorts(Host host) {
+        final List<Port> ports = new ArrayList<>();
+        if (host.getPorts() != null && host.getPorts().getPorts() != null) {
+            host.getPorts().getPorts().forEach(port -> {
+                if (isPortOpen(port)) {
+                    ports.add(port);
+                }
+            });
+        }
+        return ports;
     }
 
-    private Answer isSuitableForZombieScan(Context ctx, NmapRun nmap) {
-        IpIdSequence seq = getIpIdSequence(ctx, nmap);
+    private String getScanDifficulty(Context ctx, Host host) {
+        TcpSequence seq = getTcpSSequence(ctx, host);
         if(seq == null) {
-            return maybe;
+            return GoodLuck.name();
+        }
+        return Difficulty.fromIndex(seq.getIndex()).name();
+    }
+
+    private Boolean isSuitableForZombieScan(Context ctx, Host host) {
+        IpIdSequence seq = getIpIdSequence(ctx, host);
+        if(seq == null) {
+            return false;
         }
         String clazz = seq.getClazz().toLowerCase();
         if(clazz.contains("incremental")) {
-            return yes;
+            return true;
         }
-        return no;
+        return false;
     }
 
-    private Answer isSuitableForIdleScan(Context ctx, NmapRun nmap) {
-        IpIdSequence seq = getIpIdSequence(ctx, nmap);
+    private boolean isSuitableForIdleScan(Context ctx, Host host) {
+        IpIdSequence seq = getIpIdSequence(ctx, host);
         if(seq == null) {
-            return maybe;
+            return false;
         }
         String clazz = seq.getClazz().toLowerCase();
         if(clazz.contains("constant") || clazz.contains("random")) {
-            return no;
+            return false;
         }
         if(clazz.contains("unknown class")) {
-            return maybe;
+            return false;
         }
-        return yes;
+        return true;
     }
 
-    private TcpSequence getTcpSSequence(Context ctx, NmapRun nmap) {
-        List<Host> hosts = getHosts(ctx, nmap);
-        for(Host host : hosts) {
-            return host.getTcpSequence();
-        }
-        return null;
+    private TcpSequence getTcpSSequence(Context ctx, Host host) {
+        return host.getTcpSequence();
     }
-    private IpIdSequence getIpIdSequence(Context ctx, NmapRun nmapRun) {
-        List<Host> hosts = getHosts(ctx, nmapRun);
-        for(Host host : hosts) {
-            return host.getIpIdSequence();
-        }
-        return null;
+    private IpIdSequence getIpIdSequence(Context ctx, Host host) {
+        return host.getIpIdSequence();
     }
 
     private boolean isNFSOrIIS(Target t) {

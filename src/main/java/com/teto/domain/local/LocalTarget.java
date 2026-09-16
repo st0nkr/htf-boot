@@ -1,6 +1,7 @@
 package com.teto.domain.local;
 
 import com.teto.domain.target.Target;
+import com.teto.domain.target.TargetType;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,6 +12,7 @@ import java.util.Collection;
 @Getter
 public class LocalTarget {
     private final Target target;
+    private TargetType targetType;
     private Collection<Target> services = new ArrayList<>();
 
     public LocalTarget(Target target) {

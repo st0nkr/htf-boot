@@ -2,11 +2,12 @@ package com.teto;
 
 import com.teto.command.Context;
 import com.teto.domain.file.FileExtension;
+import com.teto.domain.meta.Tag;
 import com.teto.domain.provenance.Provenance;
 import com.teto.domain.script.Script;
 import com.teto.domain.script.ScriptCategory;
 
-public interface INMap  {
+public interface INMap extends IProperties{
 
     default boolean isNMap(Context ctx, Script script) {
         Provenance prov = Provenance.fromString(script.getName());
@@ -306,11 +307,31 @@ public interface INMap  {
         return s;
     }
 
+    default Script quickLocalNetworkScan(Context ctx) {
+        Script s = new Script();
+        s.setName(Provenance.QuickLocalNetworkScan.name());
+        s.setExecutable(locateExecutable(ctx,"nmap"));
+        String cmd = property(ctx, Tag.QuickLocalNetworkScan);
+        s.setOutputFormat(FileExtension.xml.name());
+        s.setCommandLine(s.getExecutable()+" "+cmd);
+        s.setMainCategory(ScriptCategory.NMAP.name());
+        return s;
+    }
+    default Script detectAllServices(Context ctx) {
+        Script s = new Script();
+        s.setName(Provenance.DetectAllServices.name());
+        s.setExecutable(locateExecutable(ctx,"nmap"));
+        String cmd = property(ctx, Tag.DetectAllServices);
+        s.setOutputFormat(FileExtension.xml.name());
+        s.setCommandLine(s.getExecutable()+" "+cmd);
+        s.setMainCategory(ScriptCategory.NMAP.name());
+        return s;
+    }
     default Script detectUdpServices(Context ctx) {
         Script s = new Script();
         s.setName(Provenance.DetectUDPServices.name());
         s.setExecutable(locateExecutable(ctx,"nmap"));
-        String cmd = "-vv --reason -Pn -T4 -sX -sU --version-all --spoof-mac $spoofMac -sV -p- -A -v -O $ip --min-parallelism $minParallelism --version-intensity 5 -oX $xml";
+        String cmd = "--reason -T4 -sX -sU --version-all --spoof-mac $spoofMac -sV -p- -A -v -O $ip --min-parallelism $minParallelism --version-intensity 5 -oX $xml";
         s.setOutputFormat(FileExtension.xml.name());
         s.setCommandLine(s.getExecutable()+" "+cmd);
         s.setMainCategory(ScriptCategory.NMAP.name());
@@ -320,7 +341,8 @@ public interface INMap  {
         Script s = new Script();
         s.setName(Provenance.DetectTCPServices.name());
         s.setExecutable(locateExecutable(ctx,"nmap"));
-        String cmd = "-vv --reason -Pn -T4 -sC --version-all --osscan-guess --spoof-mac $spoofMac -sV -p- -A -v -O $ip --min-parallelism $minParallelism --version-intensity 5 -oX $xml";
+
+        String cmd = property(ctx, Tag.DetectTCPServices);
         s.setOutputFormat(FileExtension.xml.name());
         s.setCommandLine(s.getExecutable()+" "+cmd);
         s.setMainCategory(ScriptCategory.NMAP.name());

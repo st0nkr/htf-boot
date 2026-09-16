@@ -8,6 +8,8 @@ public class ScriptManager implements INMap {
 
     public Script getScript(Context ctx, Provenance prov) {
         switch(prov) {
+            case QuickLocalNetworkScan: return quickLocalNetworkScan(ctx);
+            case DetectAllServices: return detectAllServices(ctx);
             case DetectUDPServices: return detectUdpServices(ctx);
             case DetectTCPServices: return detectsTCPServices(ctx);
         }

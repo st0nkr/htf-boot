@@ -8,11 +8,11 @@ import com.teto.domain.parser.nmap.NmapXmlParser;
 
 import java.util.Optional;
 
-public class CreateNMapScan extends AbstractCommand<NmapRun> implements IFile {
+public class CreateNMapScanFromFile extends AbstractCommand<NmapRun> implements IFile {
     private final String xmlFile;
     private final String provenance;
 
-    public CreateNMapScan(String xmlFile, String prov) {
+    public CreateNMapScanFromFile(String xmlFile, String prov) {
         this.xmlFile = xmlFile;
         this.provenance = prov;
     }

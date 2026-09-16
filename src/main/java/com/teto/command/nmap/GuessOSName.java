@@ -2,6 +2,7 @@ package com.teto.command.nmap;
 
 import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
+import com.teto.domain.nmap.Host;
 import com.teto.domain.nmap.NmapRun;
 import com.teto.domain.nmap.OSClass;
 import com.teto.domain.nmap.OSMatch;
@@ -15,10 +16,10 @@ import java.util.List;
 import java.util.Optional;
 
 public class GuessOSName extends AbstractCommand<String> implements INMapUtils {
-    private final NmapRun scan;
+    private final Host host;
 
-    public GuessOSName(NmapRun scan) {
-        this.scan = scan;
+    public GuessOSName(Host host) {
+        this.host = host;
     }
 
     protected OSMatch getBestMatch(List<OSMatch> matches) {
@@ -39,9 +40,9 @@ public class GuessOSName extends AbstractCommand<String> implements INMapUtils {
     }
     @Override
     public Optional<String> apply(Context ctx) {
-        Target osTarget = getOperatingSystem(ctx, scan);
+        Target osTarget = getOperatingSystem(ctx, host);
 
-        OSMatch os = getBestMatch(getOSMatches(ctx, scan));
+        OSMatch os = getBestMatch(getOSMatches(ctx, host));
         if(os != null) {
             List<OSClass> clazzes = getOtherOSClasses(osTarget.getCpe(), os.getOsClasses());
             if(clazzes.size() == 1) {

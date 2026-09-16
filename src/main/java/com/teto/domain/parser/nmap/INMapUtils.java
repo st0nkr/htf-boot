@@ -79,8 +79,8 @@ public interface INMapUtils extends IString, IKnownServices {
         return ret;
     }
 
-    default List<NSEScript> createScripts(Context ctx,NmapRun scan) {
-        final List<Port> ports = locatePorts(ctx, scan);
+    default List<NSEScript> createScripts(Context ctx,Host host) {
+        final List<Port> ports = locatePorts(ctx, host);
         final List<NSEScript> scripts = new ArrayList<>();
         if(ports != null && !ports.isEmpty()) {
             for(Port port :ports) {
@@ -91,9 +91,9 @@ public interface INMapUtils extends IString, IKnownServices {
 
         return scripts;
     }
-    default List<Target> createServiceTargets(Context ctx, NmapRun scan, Target parent) {
+    default List<Target> createServiceTargets(Context ctx, Host host, Target parent) {
         final List<Target> services = new ArrayList<>();
-        final List<Port> ports = locatePorts(ctx, scan);
+        final List<Port> ports = locatePorts(ctx, host);
         if(ports != null && !ports.isEmpty()) {
             for (Port service : ports) {
                 Target srv = createService(ctx, service, parent);
@@ -141,8 +141,8 @@ public interface INMapUtils extends IString, IKnownServices {
         return targets;
     }
 
-    default List<Target> getServices(Context ctx, NmapRun nmap, Target target) {
-        return  createServiceTargets(ctx, nmap, target);
+    default List<Target> getServices(Context ctx, Host host, Target target) {
+        return  createServiceTargets(ctx, host, target);
     }
 
     default List<NSEScript> createScripts(Context ctx, Port port) {
@@ -217,9 +217,8 @@ public interface INMapUtils extends IString, IKnownServices {
         return scan.getHosts();
     }
 
-    default List<CVE> getCVEs(Context ctx, NmapRun scan) {
+    default List<CVE> getCVEs(Context ctx, Host host) {
         Set<CVE> set = new HashSet<>();
-        getHosts(ctx, scan).forEach(host-> {
             if(host.getPorts() != null) {
                 host.getPorts().getPorts().forEach(port -> {
                     if(port.getNseScripts() != null) {
@@ -231,7 +230,6 @@ public interface INMapUtils extends IString, IKnownServices {
                     }
                 });
             }
-        });
         List<CVE> cves = new ArrayList<>(set);
         Collections.sort(cves, (o1, o2) -> {
             int cmp = 0;
@@ -247,31 +245,32 @@ public interface INMapUtils extends IString, IKnownServices {
         });
         return cves;
     }
-    default List<Target> getProductTechs(Context ctx, NmapRun scan) {
+    default List<Target> getProductTechs(Context ctx, Host host) {
         final List<Target> techs = new ArrayList<>();
-        getHosts(ctx, scan).forEach(host-> {
-            if(host.getPorts() != null) {
-                host.getPorts().getPorts().forEach(port -> {
-                    if(port.getNseScripts() != null) {
-                        port.getNseScripts().forEach(nse -> {
-                            if(nse.getTechs() != null) {
-                                nse.getTechs().forEach(product -> {
-                                    Target tech = convertToTech(product);
+        if(host.getPorts() != null) {
+            host.getPorts().getPorts().forEach(port -> {
+                if(port.getNseScripts() != null) {
+                    port.getNseScripts().forEach(nse -> {
+                        if(nse.getTechs() != null) {
+                            nse.getTechs().forEach(product -> {
+                                Target tech = convertToTech(product);
 
-                                    if(tech != null) {
-                                        tech.setIpAddress(host.getAddress().getAddr());
-                                        tech.setPortNumber(port.getPortId());
-                                        tech.setPortProtocol(port.getProtocol());
-                                        tech.setPortSate(port.getState().getState());
-                                        techs.add(tech);
-                                    }
-                                });
-                            }
-                        });
-                    }
+                                if(tech != null) {
+                                    Address addr = mergeAddresses(host.getAddresses());
+                                    tech.setMacAddress(addr.getMacAddr());
+                                    tech.setIpAddress(addr.getAddr());
+                                    tech.setVendor(addr.getVendor());
+                                    tech.setPortNumber(port.getPortId());
+                                    tech.setPortProtocol(port.getProtocol());
+                                    tech.setPortSate(port.getState().getState());
+                                    techs.add(tech);
+                                }
+                            });
+                        }
+                    });
+                }
                 });
             }
-        });
         return techs;
     }
 
@@ -291,29 +290,26 @@ public interface INMapUtils extends IString, IKnownServices {
         return tech;
     }
 
-    default List<OS> getOperatingSystems(Context ctx, NmapRun scan) {
+    default List<OS> getOperatingSystems(Context ctx, Host host) {
         final List<OS> list = new ArrayList<>();
-        for (Host host : getHosts(ctx, scan)) {
-            OS os = host.getOs();
-            if(os != null) {
-                list.add(os);
-            }
+        OS os = host.getOs();
+        if(os != null) {
+            list.add(os);
         }
         return list;
     }
 
-    default Boolean hasOS(Context ctx, NmapRun scan) {
-        List<OS> osses = getOperatingSystems(ctx, scan);
+    default Boolean hasOS(Context ctx, Host host) {
+        List<OS> osses = getOperatingSystems(ctx, host);
         if(osses == null || osses.isEmpty()) {
             return false;
         }
         return true;
     }
 
-    default Collection<Target> createCPEs(Context ctx, NmapRun scan) {
+    default Collection<Target> createCPEs(Context ctx, Host host) {
         final Collection<Target> targets = new LinkedHashSet<>();
         final Set<String> names = new HashSet<>();
-        for(Host host : getHosts(ctx, scan)) {
             Ports ports = host.getPorts();
             if(ports != null) {
                 ports.getPorts().forEach(port -> {
@@ -347,7 +343,6 @@ public interface INMapUtils extends IString, IKnownServices {
                     }
                 });
             }
-        }
         return targets;
     }
     default Collection<Target> createOperatingSystems(Context ctx, NmapRun scan) {
@@ -381,16 +376,32 @@ public interface INMapUtils extends IString, IKnownServices {
         }
         return targets;
     }
-    default Target getOperatingSystem(Context ctx, NmapRun scan) {
-        if(!hasOS(ctx, scan)) {
+
+    default Address mergeAddresses(List<Address> addresses) {
+        Address addr = new Address();
+        for(Address address : addresses) {
+            if(address.getAddrType().equals("ipv4")) {
+                addr.setAddr(address.getAddr());
+                addr.setAddrType(address.getAddrType());
+            } else {
+                addr.setMacAddr(address.getAddr());
+                addr.setVendor(address.getVendor());
+            }
+        }
+        return addr;
+    }
+    default Target getOperatingSystem(Context ctx, Host host) {
+        if(!hasOS(ctx, host)) {
             return null;
         }
         Target target = new Target();
 
-        for (Host host : getHosts(ctx, scan)) {
-            Address addr = host.getAddress();
+            Address addr = mergeAddresses(host.getAddresses());
             if (addr != null) {
                 target.setIpAddress(addr.getAddr());
+                target.setMacAddress(addr.getMacAddr());
+                target.setVendor(addr.getVendor());
+                target.setName(addr.getVendor());
             }
             OS os = host.getOs();
 
@@ -453,7 +464,6 @@ public interface INMapUtils extends IString, IKnownServices {
                         target.setProvenance(Provenance.NMap.name());
                     }
                 }
-            }
         }
         return target;
     }
@@ -474,16 +484,11 @@ public interface INMapUtils extends IString, IKnownServices {
         }
         return tt;
     }
-    default List<OSMatch> getOSMatches(Context ctx, NmapRun scan) {
+    default List<OSMatch> getOSMatches(Context ctx, Host host) {
         final List<OSMatch> matches = new ArrayList<>();
-        final List<Host> hosts = getHosts(ctx, scan);
-        if(hosts != null) {
-            hosts.forEach(host -> {
-                OS os = host.getOs();
-                if(os != null) {
-                    matches.addAll(os.getOsMatches());
-                }
-            });
+        OS os = host.getOs();
+        if(os != null) {
+            matches.addAll(os.getOsMatches());
         }
         return matches;
     }

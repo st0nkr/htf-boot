@@ -1,11 +1,13 @@
 package com.teto.domain.nmap;
 
+import java.util.List;
+
 public class Host {
     private final String startTime;
     private final String endTime;
 
     private final Status status;
-    private final Address address;
+    private final List<Address> addresses;
     private final HostNames hostNames;
     private final Trace trace;
     private final Ports ports;
@@ -17,13 +19,13 @@ public class Host {
     private final Times times;
     private final HostScript hostScript;
 
-    public Host(String startTime, String endTime, Status status, Address address, HostNames hostNames, Ports ports, HostScript hs, OS os,
+    public Host(String startTime, String endTime, Status status, List<Address> addresses, HostNames hostNames, Ports ports, HostScript hs, OS os,
                 Uptime uptime, TcpSequence tcpSequence, IpIdSequence ipIdSequence, TcpTsSequence tcpTsSequence,
                 Times times, Trace trace) {
         this.startTime = startTime;
         this.endTime = endTime;
         this.status = status;
-        this.address = address;
+        this.addresses = addresses;
         this.hostNames = hostNames;
         this.ports = ports;
         this.hostScript = hs;
@@ -34,6 +36,10 @@ public class Host {
         this.tcpTsSequence = tcpTsSequence;
         this.times = times;
         this.trace = trace;
+    }
+
+    public List<Address> getAddresses() {
+        return addresses;
     }
 
     public HostScript getHostScript() {
@@ -50,10 +56,6 @@ public class Host {
 
     public Status getStatus() {
         return status;
-    }
-
-    public Address getAddress() {
-        return address;
     }
 
     public HostNames getHostNames() {

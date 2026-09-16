@@ -105,6 +105,7 @@ public interface IIPAddresses extends IOptional {
         }
     }
 
+
     default boolean isValidIPV6(String addr) {
         if(isValidCIDR(addr)) {
             return false;

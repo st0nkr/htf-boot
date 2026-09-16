@@ -18,6 +18,7 @@ public class NmapXmlParser {
     try {
       return XmlParser.parse(ctx, xmlAsString, provenance);
     } catch ( Exception e) {
+      e.printStackTrace();
       return null;
     }
   }

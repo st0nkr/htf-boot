@@ -1,8 +1,13 @@
 package com.teto.domain.port;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.teto.domain.annotation.Meta;
 import com.teto.domain.meta.Tag;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -11,14 +16,17 @@ import org.jspecify.annotations.NonNull;
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@NoArgsConstructor
-@Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
+@Setter
+@NoArgsConstructor
+@Entity
 public class ServicePort implements Comparable<ServicePort> {
-    @Meta(tag = Tag.ID, id = true)
-    private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @Meta(tag = Tag.ParentId, notnull = true)
-    private Integer parentId;
+    private Long parentId;
     @Meta(tag = Tag.ParentType)
     private String parentType;
 

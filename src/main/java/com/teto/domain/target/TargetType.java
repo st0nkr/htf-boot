@@ -6,6 +6,14 @@ import java.util.Set;
 
 public enum TargetType {
     Any,
+    VirtualBox,
+    Ethernet,
+    Router,
+    WifiAdmin,
+    Gateway,
+    WiFi_Bluetooth,
+    SmartTV,
+    eth0,
     JSON,
     CIDR,
     UserAgent,

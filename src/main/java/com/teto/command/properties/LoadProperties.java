@@ -1,9 +1,11 @@
 package com.teto.command.properties;
 
+import com.teto.ICli;
 import com.teto.IMeta;
 import com.teto.IStream;
 import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
+import com.teto.domain.cli.CliArgs;
 import com.teto.domain.meta.Tag;
 
 import java.io.IOException;
@@ -11,12 +13,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 
-public class LoadProperties extends AbstractCommand<Properties> implements IMeta, IStream {
-    private final List<String> args;
+public class LoadProperties extends AbstractCommand<Properties> implements ICli, IMeta, IStream {
 
-    public LoadProperties(List<String> args) {
-        this.args = args;
-    }
 
     @Override
     public Optional<Properties> apply(Context ctx) {
@@ -24,7 +22,8 @@ public class LoadProperties extends AbstractCommand<Properties> implements IMeta
         if(props != null) {
             return optional(props);
         }
-        for(String arg : args) {
+        final CliArgs args = getCliArgs(ctx);
+        for(String arg : args.getArgs()) {
             if(arg.startsWith("-"+Tag.ConfigFileName.name()+"=")) {
                 String[] parts = arg.split("=");
                 if (parts.length == 2) {
@@ -34,7 +33,7 @@ public class LoadProperties extends AbstractCommand<Properties> implements IMeta
                         try {
                             props.load(fileInputStream(fileName));
                             ctx.stash(Tag.Properties.name(), props);
-                            ctx.apply(new ApplyCliOverrides(args));
+                            ctx.apply(new ApplyCliOverrides(args.getArgs()));
                             return optional(props);
                         } catch (IOException e) {
 

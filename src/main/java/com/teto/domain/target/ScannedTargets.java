@@ -65,15 +65,9 @@ public class ScannedTargets {
     private Answer loadBalanced;
     private String status;
     private String fileName;
-    public Answer isSuitableForIdleScan;
-    public Answer isSuitableForZombieScan;
-    public Difficulty difficulty;
 
     public void add(ScannedTargets targs) {
         if(targs != null) {
-            setIsSuitableForIdleScan(targs.getIsSuitableForIdleScan());
-            setIsSuitableForZombieScan(targs.getIsSuitableForZombieScan());
-            setDifficulty(targs.getDifficulty());
             if(targs.getStorageBuckets() != null) {
                 getStorageBuckets().addAll(targs.getStorageBuckets());
             }

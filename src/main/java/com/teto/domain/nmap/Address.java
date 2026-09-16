@@ -1,19 +1,21 @@
 package com.teto.domain.nmap;
 
-public class Address  {
-    private final String addr;
-    private final String addrType;
+import lombok.Getter;
+import lombok.Setter;
 
-    public Address(String addr, String addrType) {
+@Setter
+@Getter
+public class Address  {
+    private String addr;
+    private String addrType;
+    private String vendor;
+    private String macAddr;
+
+    public Address() {}
+    public Address(String addr, String addrType, String mac, String vendor) {
         this.addr = addr;
         this.addrType = addrType;
-    }
-
-    public String getAddr() {
-        return addr;
-    }
-
-    public String getAddrType() {
-        return addrType;
+        this.vendor = vendor;
+        this.macAddr = mac;
     }
 }

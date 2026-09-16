@@ -2,6 +2,11 @@ package com.teto.domain.meta;
 
 public enum Tag {
     LuaScriptEngine,
+    DetectTCPServices,
+    TargetTypeMappingFile,
+    DetectAllServices,
+    QuickLocalNetworkScan,
+    ScanDirectory,
     ExploitsCSVFileName,
     ShellCodesCSVFileName,
     TargetTypeRegexDirectory,
@@ -710,7 +715,7 @@ public enum Tag {
     MaxRate,
     NMapArgs,
     ContentType,
-    MaxThreads, Cloud, Recorded;
+    MaxThreads, Cloud, Recorded, LoadKnownServices, ForceReScan;
 
 
     public static Tag fromString(String str) {

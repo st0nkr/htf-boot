@@ -1,21 +1,35 @@
 package com.teto.domain.cve;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.teto.domain.annotation.Meta;
 import com.teto.domain.meta.Tag;
 import com.teto.domain.provenance.Provenance;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
+@NoArgsConstructor
+@Entity
 public class CVE implements Comparable<CVE> {
-    @Meta(tag = Tag.ID, id = true)
-    private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @Meta(tag = Tag.CveId)
     private String cveId;
     @Meta(tag = Tag.ParentId)
-    private Integer parentId;
+    private Long parentId;
     @Meta(tag = Tag.Description)
     private String description;
     @Meta(tag = Tag.TagWords)
@@ -75,13 +89,6 @@ public class CVE implements Comparable<CVE> {
         this.cveType = cveType;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public String getParentType() {
         return parentType;
@@ -99,13 +106,6 @@ public class CVE implements Comparable<CVE> {
         this.level = level;
     }
 
-    public Integer getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(Integer parentId) {
-        this.parentId = parentId;
-    }
 
     public CVE clone() {
         CVE c = new CVE();
