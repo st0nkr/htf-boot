@@ -148,10 +148,11 @@ public class Target implements Comparable<Target> {
     @Override
     public String toString() {
         return "Target{" +
-                "targetType='" + targetType + '\'' +
-                ", name='" + name + '\'' +
-                ", cpe='" + cpe + '\'' +
-                ", provenance='" + provenance + '\'' +
+                "name='" + name + '\'' +
+                ", uri='" + uri + '\'' +
+                ", targetType='" + targetType + '\'' +
+                ", ipAddress='" + ipAddress + '\'' +
+                ", vendor='" + vendor + '\'' +
                 '}';
     }
 
@@ -163,13 +164,27 @@ public class Target implements Comparable<Target> {
         if(o.getUri() == null) {
             return 1;
         }
-        int cmp = getUri().compareTo(o.getUri());
-        if(cmp != 0) return cmp;
-        String tt = getTargetType();
-        if(tt != null && o.getTargetType() != null) {
-            return tt.compareTo(o.getTargetType());
+        if(getPortNumber() != null && o.getPortNumber() != null) {
+            if (getPortNumber() < o.getPortNumber()) {
+                return -1;
+            }
+            if (getPortNumber() > o.getPortNumber()) {
+                return 1;
+            }
         }
-        return 0;
+        int cmp = 0;
+        if(getPortProtocol() != null && o.getPortProtocol() != null) {
+            cmp = getPortProtocol().compareTo(o.getPortProtocol());
+
+            if (cmp != 0) return cmp;
+        }
+        if(getTargetType() != null && o.getTargetType() != null) {
+            cmp = getTargetType().compareTo(o.getTargetType());
+
+            if (cmp != 0) return cmp;
+        }
+        cmp = getUri().compareTo(o.getUri());
+        return cmp;
     }
     @Override
     public int hashCode() {

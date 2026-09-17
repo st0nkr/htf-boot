@@ -25,7 +25,6 @@ public class FindIPsOnLocalNetwork extends AbstractCommand<ScannedTargets> imple
 
     @Override
     public Optional<ScannedTargets> apply(Context ctx) {
-        final List<Target> targets = new ArrayList<>();
         Optional<Target> local = ctx.apply(new FindLocalSubNetTarget());
         if(isPresent(local)) {
             Target loc = local.get();

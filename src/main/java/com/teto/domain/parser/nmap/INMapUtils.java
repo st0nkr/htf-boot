@@ -141,6 +141,9 @@ public interface INMapUtils extends IString, IKnownServices {
                 if("ldap".equals(sp.getName())) {
                     service.setTargetType(TargetType.LDAPServer.name());
                 }
+                if("javarmi".equals(sp.getName())) {
+                    service.setTargetType(TargetType.JavaRMIServer.name());
+                }
                 if("http-proxy".equals(sp.getName())) {
                     service.setTargetType(TargetType.ProxyServer.name());
                 }

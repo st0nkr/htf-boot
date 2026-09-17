@@ -9,6 +9,7 @@ public enum TargetType {
     DNSServer,
     LDAPServer,
     ProxyServer,
+    JavaRMIServer,
     FTPServer,
     FTPSServer,
     VirtualBox,

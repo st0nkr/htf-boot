@@ -5,6 +5,7 @@ import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
 import com.teto.command.exec.RunCommand;
 import com.teto.command.exec.RunCommandResponse;
+import com.teto.command.local.RunArpLocal;
 import com.teto.domain.file.FileExtension;
 import com.teto.domain.meta.Tag;
 import com.teto.domain.parser.ParserRequest;
@@ -25,10 +26,17 @@ public class RunQuickLocalNetworkScan extends AbstractCommand<ScannedTargets>
         this.target = target;
     }
 
+
     @Override
     public Optional<ScannedTargets> apply(Context ctx) {
+        Optional<ScannedTargets> st = ctx.apply(new RunArpLocal(target));
+        StringBuilder ipAddresses = new StringBuilder();
+        if(st.isPresent()) {
+            for(Target t : st.get().getTargets()) {
+                ipAddresses.append(t.getIpAddress()).append(" ");
+            }
+        }
         Optional<Script> script = getScript(ctx, Provenance.QuickLocalNetworkScan);
-        info(this,"Detect Services for "+target.getIpAddress());
         ParserRequest pr = new ParserRequest(target, Provenance.DetectAllServices);
         pr.setOutputFileName(createFileName(ctx, target, script.get()));
         boolean forceReScan = propertyBoolean(ctx, Tag.ForceReScan, false);
@@ -39,7 +47,7 @@ public class RunQuickLocalNetworkScan extends AbstractCommand<ScannedTargets>
                 cmd = cmd.replace("$spoofMac", generateRandomMacAddress());
             }
             if(cmd.contains("$subnetMask")) {
-                cmd = cmd.replace("$subnetMask", target.getSubNetMask());
+                cmd = cmd.replace("$subnetMask", ipAddresses);
             }
             if(cmd.contains("$xml")) {
                 cmd = cmd.replace("$xml", pr.getOutputFileName());
@@ -48,21 +56,9 @@ public class RunQuickLocalNetworkScan extends AbstractCommand<ScannedTargets>
             Optional<RunCommandResponse> rsp = ctx.apply(new RunCommand(cmd, 0, minutes(30)));
         }
         NMapParser parser = new NMapParser();
-        ScannedTargets st = parser.parse(ctx, pr);
-        return optional(st);
+        ScannedTargets stargs = parser.parse(ctx, pr);
+        return optional(stargs);
     }
 
-    private String createFileName(Context ctx, Target target, Script script) {
-        String dir = property(ctx, Tag.ScanDirectory);
-        String xtn = getExtension(script);
-        return dir+ File.separator+script.getName()+"-"+target.getIpAddress()+xtn;
-    }
 
-    private String getExtension(Script script) {
-        FileExtension xtn = FileExtension.fromString(script.getOutputFormat());
-        if(xtn == null) {
-            return ".txt";
-        }
-        return "."+xtn.name();
-    }
 }

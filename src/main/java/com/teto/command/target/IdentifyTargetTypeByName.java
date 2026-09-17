@@ -9,10 +9,10 @@ import com.teto.domain.target.TargetType;
 
 import java.util.Optional;
 
-public class IdentifyTargetType extends AbstractCommand<Void> implements ICSV, ITarget {
+public class IdentifyTargetTypeByName extends AbstractCommand<Void> implements ICSV, ITarget {
     private final Target target;
 
-    public IdentifyTargetType(Target target) {
+    public IdentifyTargetTypeByName(Target target) {
         this.target = target;
     }
 

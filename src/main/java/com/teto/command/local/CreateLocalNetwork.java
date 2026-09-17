@@ -3,7 +3,7 @@ package com.teto.command.local;
 import com.teto.ITarget;
 import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
-import com.teto.command.target.IdentifyTargetType;
+import com.teto.command.target.IdentifyTargetTypeByName;
 import com.teto.domain.local.LocalNetwork;
 import com.teto.domain.local.LocalTarget;
 import com.teto.domain.provenance.Provenance;
@@ -25,8 +25,10 @@ public class CreateLocalNetwork extends AbstractCommand<LocalNetwork> implements
             if(localMe != null) {
                 final LocalNetwork ln = new LocalNetwork(localMe);
                 for(Target ip : targets) {
-                    ctx.apply(new IdentifyTargetType(ip));
-                    ln.getLocalTargets().add(new LocalTarget(ip));
+                    ctx.apply(new IdentifyTargetTypeByName(ip));
+                    if(!ip.getIpAddress().equalsIgnoreCase(localMe.getIpAddress())) {
+                        ln.getLocalTargets().add(new LocalTarget(ip));
+                    }
                 }
                 return optional(ln);
             }

@@ -74,18 +74,4 @@ public class DetectAllLocalHostServices extends AbstractCommand<ScannedTargets>
         return optional(scannedTargets);
     }
 
-    private String createFileName(Context ctx, Target target, Script script) {
-
-        String dir = property(ctx, Tag.ScanDirectory);
-        String xtn = getExtension(script);
-        return dir+ File.separator+script.getName()+"-"+target.getIpAddress()+xtn;
-    }
-
-    private String getExtension(Script script) {
-        FileExtension xtn = FileExtension.fromString(script.getOutputFormat());
-        if(xtn == null) {
-            return ".txt";
-        }
-        return "."+xtn.name();
-    }
 }

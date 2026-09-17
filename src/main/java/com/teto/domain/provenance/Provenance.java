@@ -896,7 +896,7 @@ public enum Provenance {
 
     SanityCheck(-1),
     DropScanDataTables(-1),
-    TruncateScanData(-1);
+    TruncateScanData(-1), ArpNames(-1);
 
 
     private String tag;

@@ -221,10 +221,9 @@ public class NMapParser implements IVersionNumber,INMapUtils,IOptional, IIPAddre
                 for (var service : services) {
                     service.setParentId(req.getParent().getId());
                     service.setParentType(req.getParent().getTargetType());
-                    service.setUri(osTarget.getIpAddress() + ":" + service.getPortNumber());
                     service.setLevel(req.getParent().getLevel() + 1);
                     service.setVerified(Boolean.TRUE);
-                    service.setIpAddress(osTarget.getIpAddress());
+                    //service.setIpAddress(osTarget.getIpAddress());
                     service.setUnderlyingSystem(osTarget.getTargetType());
                     service.setProduct(osTarget.getProduct());
                     service.setCpe(osTarget.getCpe());
@@ -240,16 +239,17 @@ public class NMapParser implements IVersionNumber,INMapUtils,IOptional, IIPAddre
                     } else {
                         if (service.getName().equalsIgnoreCase("fwl-or-bgmp")) {
                             service.setTargetType(TargetType.Firewall.name());
-                        } else {
-                            service.setTargetType(TargetType.Service.name());
                         }
                     }
                 }
-                //ret.getTargets().addAll(services);
+                ret.getTargets().addAll(services);
             }
         }
     }
-        ret.getTargets().forEach(target -> target.setProvenance(provenance.name()));
+        for(Target target : ret.getTargets()) {
+            //target.setIpAddress(req.getParent().getIpAddress());
+            target.setProvenance(provenance.name());
+        }
         ret.getCves().forEach(cve -> {
             cve.setProvenance(provenance);
         });
@@ -345,22 +345,14 @@ public class NMapParser implements IVersionNumber,INMapUtils,IOptional, IIPAddre
                     case "ldap":
                     case "domain":
                     case "http-proxy":
+                    case "java-rmi":
                     case "ssh": break;
                     default:
                         System.out.println("ServiceName unknown ===>"+serviceName);
-                        System.out.println(service);
-                        List<KnownService> knowns = getKnownServices(ctx, sp.getPortNumber(), sp.getProtocol());
-                        if(knowns != null && knowns.size() == 1) {
-                            KnownService ks = knowns.get(0);
-                            serviceName = ks.getComment();
-                            sp.setAccuracy(50);
-                        }
                 }
-
             }
-                System.out.println("ServiceName -> "+serviceName);
-                sp.setName(serviceName);
-            }
+            sp.setName(serviceName);
+        }
         return sp;
     }
 
@@ -407,17 +399,6 @@ public class NMapParser implements IVersionNumber,INMapUtils,IOptional, IIPAddre
                 if ("open".equals(state.getState())) {
                     return true;
                 }
-            }
-        }
-        return false;
-    }
-
-    private boolean isPortClosed(Port p) {
-        if(p != null) {
-            State state = p.getState();
-            if(state != null) {
-                boolean equals = "closed".equals(state.getState());
-                return equals;
             }
         }
         return false;

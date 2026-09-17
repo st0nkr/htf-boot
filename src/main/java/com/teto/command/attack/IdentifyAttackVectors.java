@@ -15,11 +15,7 @@ public class IdentifyAttackVectors extends AbstractCommand<AttackVector> {
 
     @Override
     public Optional<AttackVector> apply(Context ctx) {
-        String tcpPorts = root.getTarget().getTcpPorts();
-        if(tcpPorts != null) {
-
-        }
-        String udpPorts = root.getTarget().getUdpPorts();
+        System.out.println(root);
 
         return Optional.empty();
     }
