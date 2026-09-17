@@ -331,7 +331,7 @@ public interface INMap extends IProperties{
         Script s = new Script();
         s.setName(Provenance.DetectUDPServices.name());
         s.setExecutable(locateExecutable(ctx,"nmap"));
-        String cmd = "--reason -T4 -sX -sU --version-all --spoof-mac $spoofMac -sV -p- -A -v -O $ip --min-parallelism $minParallelism --version-intensity 5 -oX $xml";
+        String cmd = property(ctx, Tag.DetectUDPServices);
         s.setOutputFormat(FileExtension.xml.name());
         s.setCommandLine(s.getExecutable()+" "+cmd);
         s.setMainCategory(ScriptCategory.NMAP.name());

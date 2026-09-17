@@ -26,7 +26,6 @@ public class CreateLocalNetwork extends AbstractCommand<LocalNetwork> implements
                 final LocalNetwork ln = new LocalNetwork(localMe);
                 for(Target ip : targets) {
                     ctx.apply(new IdentifyTargetType(ip));
-                    info(this,"Discover target type for target "+ip.getName()+" "+ip.getTargetType());
                     ln.getLocalTargets().add(new LocalTarget(ip));
                 }
                 return optional(ln);

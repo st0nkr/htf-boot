@@ -7,10 +7,11 @@ import com.teto.command.target.SaveLocalTargets;
 import com.teto.domain.local.LocalNetwork;
 import com.teto.domain.local.LocalTarget;
 import com.teto.domain.target.Target;
+import com.teto.domain.target.TargetType;
 
 import java.util.Optional;
 
-public interface ILocalNetwork extends IOptional{
+public interface ILocalNetwork extends IOptional, ITarget, ILogger{
     default Optional<LocalNetwork> getLocalNetwork(Context ctx, boolean detectServices) {
         LocalNetwork ln = ctx.fetch(LocalNetwork.class);
         if(ln == null) {
@@ -20,7 +21,14 @@ public interface ILocalNetwork extends IOptional{
                 ctx.stash(ln = ret.get());
                 if(detectServices && !ln.getLocalTargets().isEmpty()) {
                     for(LocalTarget lt : ln.getLocalTargets()) {
-                        ctx.apply(new DetectAllLocalHostServices(lt.getTarget()));
+                        Target target = lt.getTarget();
+                        TargetType tt = getTargetType(ctx, target);
+                        info(this,"Only interested in virtual box targets");
+                        if(tt != null) {
+                            switch(tt) {
+                                case VirtualBox -> ctx.apply(new DetectAllLocalHostServices(lt));
+                            }
+                        }
                     }
                 }
             }

@@ -20,41 +20,52 @@ import java.util.Optional;
 
 public class DetectAllLocalHostServices extends AbstractCommand<ScannedTargets>
         implements IScripts, IMAC, IDuration, IFile, ILogger, ILocalNetwork {
-    private final Target target;
+    private final LocalTarget lt;
 
-    public DetectAllLocalHostServices(Target target) {
-        this.target = target;
+    public DetectAllLocalHostServices(LocalTarget lt) {
+        this.lt = lt;
     }
 
     @Override
     public Optional<ScannedTargets> apply(Context ctx) {
-        Optional<Script> script = getScript(ctx, Provenance.DetectAllServices);
-        info(this,"Detect Services for "+target.getIpAddress());
-        ParserRequest pr = new ParserRequest(target, Provenance.DetectAllServices);
-        pr.setOutputFileName(createFileName(ctx, target, script.get()));
-        boolean forceReScan = propertyBoolean(ctx, Tag.ForceReScan, false);
-        // Create a CliMapper for script
-        if(isPresent(script) && (forceReScan ||!fileExists(pr.getOutputFileName()))) {
-            String cmd = script.get().getCommandLine();
-            if(cmd.contains("$spoofMac")) {
-                cmd = cmd.replace("$spoofMac", generateRandomMacAddress());
-            }
-            if(cmd.contains("$ip")) {
-                cmd = cmd.replace("$ip", target.getIpAddress());
-            }
-            if(cmd.contains("$xml")) {
-                cmd = cmd.replace("$xml", pr.getOutputFileName());
-            }
-            info(this,"Command -> "+cmd);
-            Optional<RunCommandResponse> rsp = ctx.apply(new RunCommand(cmd, 0, minutes(30)));
-            if(isPresent(rsp)) {
+        Target target = lt.getTarget();
+        final ScannedTargets scannedTargets = new ScannedTargets();
+        Provenance[] provs = new Provenance[] { Provenance.DetectTCPServices, Provenance.DetectUDPServices};
+        for(Provenance prov : provs) {
+            Optional<Script> script = getScript(ctx, prov);
+            info(this,"Detect Services for "+target.getIpAddress());
+            ParserRequest pr = new ParserRequest(target, prov);
+            pr.setOutputFileName(createFileName(ctx, target, script.get()));
+            boolean forceReScan = propertyBoolean(ctx, Tag.ForceReScan, false);
+            // Create a CliMapper for script
+            if(isPresent(script) && (forceReScan ||!fileExists(pr.getOutputFileName()))) {
+                String cmd = script.get().getCommandLine();
+                if(cmd.contains("$spoofMac")) {
+                    cmd = cmd.replace("$spoofMac", generateRandomMacAddress());
+                }
+                if(cmd.contains("$ip")) {
+                    cmd = cmd.replace("$ip", target.getIpAddress());
+                }
+                if(cmd.contains("$xml")) {
+                    cmd = cmd.replace("$xml", pr.getOutputFileName());
+                }
+                info(this,"Command -> "+cmd);
+                Optional<RunCommandResponse> rsp = ctx.apply(new RunCommand(cmd, 0, minutes(30)));
+                if(isPresent(rsp)) {
 
+                }
             }
+            NMapParser parser = new NMapParser();
+            // Create a temp file and write contents to it
+            ScannedTargets st = parser.parse(ctx, pr);
+            if(lt.getScannedTargets() == null) {
+                lt.setScannedTargets(st);
+            } else {
+                lt.getScannedTargets().add(st);
+            }
+            scannedTargets.add(st);
         }
-        NMapParser parser = new NMapParser();
-        // Create a temp file and write contents to it
-        ScannedTargets st = parser.parse(ctx, pr);
-        return optional(st);
+        return optional(scannedTargets);
     }
 
     private String createFileName(Context ctx, Target target, Script script) {

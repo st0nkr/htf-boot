@@ -115,11 +115,39 @@ public class ScannedTargets {
                 getSwaggers().addAll(targs.getSwaggers());
             }
             for (Target t : targs.getTargets()) {
-                if(!isEmpty(t.getUri())) {
-                    if (!targets.contains(t)) {
-                        targets.add(t);
+                TargetType tt = TargetType.fromString(t.getTargetType());
+                if(tt != null) {
+                    switch(tt) {
+                        case OperatingSystem : {
+                            Target os = getOperatingSystem(targets);
+                            if(os == null) {
+                                targets.add(t);
+                            } else {
+                                if (t.getOsAccuracy() != null) {
+                                    if (os.getOsAccuracy() < t.getOsAccuracy()) {
+                                        targets.remove(os);
+                                        targets.add(t);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                        default: {
+                            if(!isEmpty(t.getUri())) {
+                                if (!targets.contains(t)) {
+                                    targets.add(t);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    if(!isEmpty(t.getUri())) {
+                        if (!targets.contains(t)) {
+                            targets.add(t);
+                        }
                     }
                 }
+
             }
             if(targs.getSubDomains() != null) {
                 getSubDomains().addAll(targs.getSubDomains());
@@ -140,6 +168,16 @@ public class ScannedTargets {
                 getExploits().addAll(targs.getExploits());
             }
         }
+    }
+
+    private Target getOperatingSystem(Collection<Target> targs) {
+        for(Target target : targs) {
+            TargetType tt = TargetType.fromString(target.getTargetType());
+            if(TargetType.OperatingSystem.equals(tt)) {
+                return target;
+            }
+        }
+        return null;
     }
 
     private boolean isEmpty(String str) {

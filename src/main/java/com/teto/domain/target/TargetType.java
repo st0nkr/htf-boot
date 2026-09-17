@@ -6,6 +6,7 @@ import java.util.Set;
 
 public enum TargetType {
     Any,
+    DNSServer,
     VirtualBox,
     Ethernet,
     Router,
@@ -2439,6 +2440,7 @@ public enum TargetType {
     FirebaseCustomToken,
     FirebaseIdToken,
     Ftp,
+    Ftps,
     GenericAPIKey,
     GenericCredential,
     GenericSecret,

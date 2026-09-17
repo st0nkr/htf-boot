@@ -6,6 +6,7 @@ import com.teto.command.Context;
 import com.teto.domain.cve.CVE;
 import com.teto.domain.nmap.*;
 import com.teto.domain.port.PortState;
+import com.teto.domain.port.ServicePort;
 import com.teto.domain.product.Product;
 import com.teto.domain.provenance.Provenance;
 import com.teto.domain.reason.Reason;
@@ -91,7 +92,9 @@ public interface INMapUtils extends IString, IKnownServices {
 
         return scripts;
     }
-    default List<Target> createServiceTargets(Context ctx, Host host, Target parent) {
+    default List<Target> createServiceTargets(Context ctx, Host host, Target parent,
+                                              Collection<ServicePort> servicePorts) {
+
         final List<Target> services = new ArrayList<>();
         final List<Port> ports = locatePorts(ctx, host);
         if(ports != null && !ports.isEmpty()) {
@@ -124,7 +127,32 @@ public interface INMapUtils extends IString, IKnownServices {
             }
             return 0;
         });
+        mergeServicePorts(ctx, services,servicePorts);
         return services;
+    }
+
+    default void mergeServicePorts(Context ctx, List<Target> services, Collection<ServicePort> servicePorts) {
+        for(Target service : services) {
+            ServicePort sp = getServicePortFor(service, servicePorts);
+            if(sp != null) {
+                if("domain".equals(sp.getName())) {
+                    service.setTargetType(TargetType.DNSServer.name());
+                }
+                service.setName(sp.getName());
+                service.setDescription(sp.getName());
+            }
+        }
+    }
+
+    default ServicePort getServicePortFor(Target service, Collection<ServicePort> servicePorts) {
+        for(ServicePort sp : servicePorts) {
+            if(sp.getPortNumber() == service.getPortNumber()) {
+                if(sp.getProtocol().equals(service.getPortProtocol())) {
+                    return sp;
+                }
+            }
+        }
+        return null;
     }
 
     default List<Target> getTargets(Context ctx, Target parent, NmapRun nmap, String...serviceNames) {
@@ -141,9 +169,6 @@ public interface INMapUtils extends IString, IKnownServices {
         return targets;
     }
 
-    default List<Target> getServices(Context ctx, Host host, Target target) {
-        return  createServiceTargets(ctx, host, target);
-    }
 
     default List<NSEScript> createScripts(Context ctx, Port port) {
         List<NSEScript> scripts = port.getNseScripts();

@@ -3,6 +3,7 @@ package com.teto.domain.meta;
 public enum Tag {
     LuaScriptEngine,
     DetectTCPServices,
+    DetectUDPServices,
     TargetTypeMappingFile,
     DetectAllServices,
     QuickLocalNetworkScan,

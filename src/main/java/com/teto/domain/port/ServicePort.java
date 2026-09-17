@@ -25,39 +25,24 @@ public class ServicePort implements Comparable<ServicePort> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Meta(tag = Tag.ParentId, notnull = true)
     private Long parentId;
-    @Meta(tag = Tag.ParentType)
     private String parentType;
 
-    @Meta(tag = Tag.PortNumber, notnull = true)
     private Long portNumber;
-    @Meta(tag = Tag.Protocol)
     private String protocol;
-    @Meta(tag = Tag.IPAddress)
     private String ipAddress;
-    @Meta(tag = Tag.Name)
     private String name;
-    @Meta(tag = Tag.Version)
     private String version;
-    @Meta(tag = Tag.Status)
     private String status;
-    @Meta(tag = Tag.TimeToLive)
     private Integer ttl;
-    @Meta(tag = Tag.Reason)
     private String reason;
-    @Meta(tag = Tag.PortState)
     private String portState;
-    @Meta(tag = Tag.Provenance)
     private String provenance;
-    @Meta(tag = Tag.Level)
     private Integer level;
-    @Meta(tag = Tag.Product)
     private String product;
-    @Meta(tag = Tag.Score)
     private Integer score;
-    @Meta(tag = Tag.Hits)
     private Integer hits;
+    private Integer accuracy = 100;
 
     @Override
     public String toString() {

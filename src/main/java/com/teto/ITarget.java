@@ -49,4 +49,15 @@ public interface ITarget extends IProperties, ICSV {
         return getTargetTypeMapper(ctx).targetTypeFor(text);
     }
 
+    default TargetType getTargetType(Context ctx, Target t) {
+        TargetType tt = TargetType.fromString(t.getTargetType());
+        if(tt != null) {
+            return tt;
+        }
+        if(t.getName() != null) {
+            return getTargetTypeMapper(ctx).targetTypeFor(t.getName());
+        }
+        return null;
+    }
+
 }

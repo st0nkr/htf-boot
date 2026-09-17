@@ -1,6 +1,5 @@
 package com.teto.domain.parser.nmap;
 
-import com.teto.Answer;
 import com.teto.IIPAddresses;
 import com.teto.IOptional;
 import com.teto.IVersionNumber;
@@ -20,7 +19,6 @@ import com.teto.domain.target.TargetType;
 
 import java.util.*;
 
-import static com.teto.Answer.*;
 import static com.teto.domain.difficulty.Difficulty.GoodLuck;
 
 public class NMapParser implements IVersionNumber,INMapUtils,IOptional, IIPAddresses {
@@ -143,7 +141,7 @@ public class NMapParser implements IVersionNumber,INMapUtils,IOptional, IIPAddre
                     });
                     ret.getCves().addAll(cves);
                 }
-                final List<Target> services = createServiceTargets(ctx, host, osTarget);
+                final List<Target> services = createServiceTargets(ctx, host, osTarget, ret.getServicePorts());
 
             if (services != null && !services.isEmpty()) {
                 final Target finalOsTarget = osTarget;
@@ -293,33 +291,59 @@ public class NMapParser implements IVersionNumber,INMapUtils,IOptional, IIPAddre
         sp.setPortState(port.getState().getState());
         sp.setPortNumber(port.getPortId());
 
-            sp.setProduct(service.getProduct());
-            if ("tcpwrapped".equals(service.getName()) || isEmptyString(service.getName())) {
-                List<KnownService> knowns = getKnownServices(ctx, port.getPortId(), port.getProtocol());
-                if(knowns != null && !knowns.isEmpty()) {
-                    sp.setName(knowns.get(0).getName());
-                } else {
-                    String serviceName = service.getName();
-                    if(service.getTunnel() != null && "ssl".equals(service.getTunnel())) {
-                        if("http".equals(serviceName)) {
-                            serviceName = "https";
-                        }
-                        if("ftp".equals(serviceName)) {
-                            serviceName = "ftps";
-                        }
-                    }
-                    sp.setName(serviceName);
-                }
+        sp.setProduct(service.getProduct());
+        if ("tcpwrapped".equals(service.getName()) || isEmptyString(service.getName())) {
+            List<KnownService> knowns = getKnownServices(ctx, port.getPortId(), port.getProtocol());
+            if(knowns != null && !knowns.isEmpty()) {
+                sp.setName(knowns.get(0).getName());
             } else {
                 String serviceName = service.getName();
                 if(service.getTunnel() != null && "ssl".equals(service.getTunnel())) {
                     if("http".equals(serviceName)) {
-                        serviceName = "https";
+                        serviceName = TargetType.Https.name();
+                    }
+                    if("ftps".equals(serviceName)) {
+                        serviceName = TargetType.Ftps.name();
                     }
                     if("ftp".equals(serviceName)) {
-                        serviceName = "ftps";
+                        serviceName = TargetType.Ftp.name();
                     }
                 }
+                sp.setName(serviceName);
+            }
+        } else {
+            String serviceName = service.getName();
+            if(service.getTunnel() != null && "ssl".equals(service.getTunnel())) {
+                if("http".equals(serviceName)) {
+                    serviceName = TargetType.Https.name();
+                }
+                if("ftps".equals(serviceName)) {
+                    serviceName = TargetType.Ftps.name();
+                }
+                if("ftp".equals(serviceName)) {
+                    serviceName = TargetType.Ftp.name();
+                }
+            } else {
+                switch(serviceName) {
+                    case "rpcbind" : {
+                        List<KnownService> knowns = getKnownServices(ctx, sp.getPortNumber(), sp.getProtocol());
+                        if(knowns != null && knowns.size() == 1) {
+                            KnownService ks = knowns.get(0);
+                            serviceName = ks.getComment();
+                            sp.setAccuracy(50);
+                        }
+                    } break;
+                    case "https":
+                    case "http":
+                    case "ftp":
+                    case "ftps":
+                    case "ssh": break;
+                    default:
+                        System.out.println("ServiceName unknown ===>"+serviceName);
+                }
+
+            }
+                System.out.println("ServiceName -> "+serviceName);
                 sp.setName(serviceName);
             }
         return sp;
