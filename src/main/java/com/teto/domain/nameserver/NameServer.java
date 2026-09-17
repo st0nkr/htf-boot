@@ -19,7 +19,7 @@ public class NameServer extends BaseTarget implements Comparable<NameServer>{
     @Meta(tag = Tag.NameServer)
     private String nameServer;
 
-    public NameServer(String name, Integer parentId, Integer level) {
+    public NameServer(String name, Long parentId, Integer level) {
         super(name, TargetType.NameServer.name(), parentId, level);
     }
 

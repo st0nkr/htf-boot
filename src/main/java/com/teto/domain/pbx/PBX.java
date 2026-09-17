@@ -22,7 +22,7 @@ public class PBX extends BaseTarget implements Comparable<PBX>{
     @Meta(tag = Tag.PortState)
     private String portState;
 
-    public PBX(String name, Integer parentId, Integer level) {
+    public PBX(String name, Long parentId, Integer level) {
         super(name, TargetType.PBX.name(), parentId, level);
     }
 

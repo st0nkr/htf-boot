@@ -7,6 +7,10 @@ import java.util.Set;
 public enum TargetType {
     Any,
     DNSServer,
+    LDAPServer,
+    ProxyServer,
+    FTPServer,
+    FTPSServer,
     VirtualBox,
     Ethernet,
     Router,

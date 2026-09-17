@@ -11,7 +11,7 @@ public class Http extends BaseTarget implements Comparable<Http> {
     @Meta(tag = Tag.Url, notnull = true)
     private String url;
 
-    public Http(String name, Integer pid, int level) {
+    public Http(String name, Long pid, int level) {
         super(name, TargetType.Http.name(), pid, level);
     }
 

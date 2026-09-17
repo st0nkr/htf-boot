@@ -11,7 +11,7 @@ public class Ipv4 extends BaseTarget implements Comparable<Ipv4> {
     @Meta(tag = Tag.IPAddress, notnull = true)
     private String ipAddress;
 
-    public Ipv4(String name, Integer pid, int level) {
+    public Ipv4(String name, Long pid, int level) {
         super(name, TargetType.Ipv4.name(), pid, level);
     }
 

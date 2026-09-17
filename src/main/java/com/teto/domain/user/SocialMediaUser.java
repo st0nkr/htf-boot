@@ -33,7 +33,7 @@ public class SocialMediaUser extends BaseTarget implements Comparable<SocialMedi
     @Meta(tag = Tag.ProfileName)
     private String profileName;
 
-    public SocialMediaUser(String name, Integer parentId, Integer level) {
+    public SocialMediaUser(String name, Long parentId, Integer level) {
         super(name, TargetType.SocialMediaUser.name(), parentId, level);
     }
 

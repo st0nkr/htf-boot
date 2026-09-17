@@ -333,13 +333,28 @@ public class NMapParser implements IVersionNumber,INMapUtils,IOptional, IIPAddre
                             sp.setAccuracy(50);
                         }
                     } break;
+                    case "status": {
+                        if(service.getExtraInfo() != null && service.getExtraInfo().startsWith("RPC")) {
+                            serviceName = "Remote Procedure Call";
+                        }
+                    } break;
                     case "https":
                     case "http":
                     case "ftp":
                     case "ftps":
+                    case "ldap":
+                    case "domain":
+                    case "http-proxy":
                     case "ssh": break;
                     default:
                         System.out.println("ServiceName unknown ===>"+serviceName);
+                        System.out.println(service);
+                        List<KnownService> knowns = getKnownServices(ctx, sp.getPortNumber(), sp.getProtocol());
+                        if(knowns != null && knowns.size() == 1) {
+                            KnownService ks = knowns.get(0);
+                            serviceName = ks.getComment();
+                            sp.setAccuracy(50);
+                        }
                 }
 
             }

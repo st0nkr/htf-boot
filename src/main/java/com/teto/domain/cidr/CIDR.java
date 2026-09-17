@@ -9,7 +9,7 @@ public class CIDR extends BaseTarget  {
     @Meta(tag = Tag.Uri)
     private String uri;
 
-    public CIDR(String name, Integer pid, int level) {
+    public CIDR(String name, Long pid, int level) {
         super(name, TargetType.CIDR.name(), pid, level);
     }
 

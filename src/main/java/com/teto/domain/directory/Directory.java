@@ -25,7 +25,7 @@ public class Directory extends BaseTarget implements Comparable<Directory> {
     @Meta(tag = Tag.Hosts)
     private String host;
 
-    public Directory(String name, Integer pid, int level) {
+    public Directory(String name, Long pid, int level) {
         super(name, TargetType.Directory.name(), pid, level);
     }
 

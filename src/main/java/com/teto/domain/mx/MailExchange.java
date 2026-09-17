@@ -19,7 +19,7 @@ public class MailExchange extends BaseTarget implements Comparable<MailExchange>
     @Meta(tag = Tag.MailExchangeName)
     private String mailExchangeName;
 
-    public MailExchange(String name, Integer parentId, Integer level) {
+    public MailExchange(String name, Long parentId, Integer level) {
         super(name, TargetType.MailExchange.name(), parentId, level);
     }
 

@@ -138,6 +138,18 @@ public interface INMapUtils extends IString, IKnownServices {
                 if("domain".equals(sp.getName())) {
                     service.setTargetType(TargetType.DNSServer.name());
                 }
+                if("ldap".equals(sp.getName())) {
+                    service.setTargetType(TargetType.LDAPServer.name());
+                }
+                if("http-proxy".equals(sp.getName())) {
+                    service.setTargetType(TargetType.ProxyServer.name());
+                }
+                if("ftp".equals(sp.getName())) {
+                    service.setTargetType(TargetType.FTPServer.name());
+                }
+                if("ftps".equals(sp.getName())) {
+                    service.setTargetType(TargetType.FTPSServer.name());
+                }
                 service.setName(sp.getName());
                 service.setDescription(sp.getName());
             }

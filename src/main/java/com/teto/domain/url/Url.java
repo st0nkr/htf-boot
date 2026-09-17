@@ -30,7 +30,7 @@ public class Url extends BaseTarget implements Comparable<Url> {
     private String parameter;
 
 
-    public Url(String name, Integer pid, int level) {
+    public Url(String name, Long pid, int level) {
         super(name, TargetType.Url.name(), pid, level);
     }
 

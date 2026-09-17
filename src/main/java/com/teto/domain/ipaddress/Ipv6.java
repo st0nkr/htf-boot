@@ -11,7 +11,7 @@ public class Ipv6 extends BaseTarget implements Comparable<Ipv6> {
     @Meta(tag = Tag.IPAddress, notnull = true)
     private String ipAddress;
 
-    public Ipv6(String name, Integer pid, int level) {
+    public Ipv6(String name, Long pid, int level) {
         super(name, TargetType.Ipv6.name(), pid, level);
     }
 

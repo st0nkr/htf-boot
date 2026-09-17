@@ -5,6 +5,8 @@ import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
 import com.teto.command.exec.RunCommand;
 import com.teto.command.exec.RunCommandResponse;
+import com.teto.command.searchsploit.SearchSploitNMap;
+import com.teto.domain.exploit.Exploit;
 import com.teto.domain.file.FileExtension;
 import com.teto.domain.local.LocalTarget;
 import com.teto.domain.meta.Tag;
@@ -16,6 +18,7 @@ import com.teto.domain.target.ScannedTargets;
 import com.teto.domain.target.Target;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Optional;
 
 public class DetectAllLocalHostServices extends AbstractCommand<ScannedTargets>
@@ -56,8 +59,11 @@ public class DetectAllLocalHostServices extends AbstractCommand<ScannedTargets>
                 }
             }
             NMapParser parser = new NMapParser();
-            // Create a temp file and write contents to it
             ScannedTargets st = parser.parse(ctx, pr);
+            Optional<Collection<Exploit>> exploits = ctx.apply(new SearchSploitNMap(pr, st));
+            if(isPresent(exploits)) {
+                st.setExploits(exploits.get());
+            }
             if(lt.getScannedTargets() == null) {
                 lt.setScannedTargets(st);
             } else {

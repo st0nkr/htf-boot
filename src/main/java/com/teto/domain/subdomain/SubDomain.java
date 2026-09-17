@@ -18,7 +18,7 @@ import java.util.Objects;
 public class SubDomain extends BaseTarget implements Comparable<SubDomain> {
     @Meta(tag = Tag.Domain, notnull = true)
     private String domain;
-    public SubDomain(String name, Integer pid, int level) {
+    public SubDomain(String name, Long pid, int level) {
         super(name, TargetType.SubDomain.name(), pid, level);
     }
 
