@@ -1,0 +1,1 @@
+-----BEGIN (?:EC|ECDSA) PRIVATE KEY-----(?:[a-zA-Z0-9+=/"']|s)+?-----END (?:EC|ECDSA) PRIVATE KEY-----

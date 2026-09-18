@@ -1,0 +1,2 @@
+(?i)(?:pagerduty).{0,40}b([a-z]{1}+[a-zA-Z]{9}-[a-z]{2}-[a-z0-9]{5})b
+pagerduty[_-]?apikey(=| =|:| :)

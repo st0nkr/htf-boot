@@ -1,0 +1,1 @@
+(?i)(?:pepipost|netcore).{0,40}b([a-zA-Z-0-9]{32})b

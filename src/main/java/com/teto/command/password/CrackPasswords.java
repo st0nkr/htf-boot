@@ -5,7 +5,9 @@ import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
 import com.teto.domain.local.TargetNode;
 import com.teto.domain.provenance.Provenance;
+import com.teto.domain.user.ScannedUser;
 
+import java.util.Collection;
 import java.util.Optional;
 
 public class CrackPasswords extends AbstractCommand<Void> implements IUser {
@@ -18,7 +20,10 @@ public class CrackPasswords extends AbstractCommand<Void> implements IUser {
 
     @Override
     public Optional<Void> apply(Context ctx) {
-        ctx.apply(new CrackSSHPassword(node, getUsers(ctx, node, Provenance.WordPressEnumerateUsers)));
+        Optional<Collection<ScannedUser>> crackedUsers = ctx.apply(new CrackSSHPassword(node, getUsers(ctx, node, Provenance.WordPressEnumerateUsers)));
+        if(isPresent(crackedUsers)) {
+            node.getScannedTargets().setUsers(crackedUsers.get());
+        }
         return Optional.empty();
     }
 }

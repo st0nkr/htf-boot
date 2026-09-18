@@ -1,0 +1,1 @@
+(?i)(?:opengraphr).{0,40}b([0-9Aa-zA-Z]{80})b

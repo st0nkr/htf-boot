@@ -1,0 +1,2 @@
+(https://hooks.zapier.com/hooks/catch/[A-Za-z0-9/]{16})
+https://(?:www.)?hooks.zapier.com/hooks/catch/[A-Za-z0-9]+/[A-Za-z0-9]+/

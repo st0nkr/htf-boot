@@ -21,7 +21,7 @@ public class ExtractTargetTypes extends AbstractCommand<Map<TargetType, Collecti
         for(TargetType tt : TargetType.values()) {
 
             List<Pattern> patterns = getTargetTypePatterns(ctx, tt);
-            if(!patterns.isEmpty() && patterns.size() > 0) {
+            if(!patterns.isEmpty()) {
                 for (Pattern pattern : patterns) {
                     Matcher matcher = pattern.matcher(str);
                     if(matcher.find()) {

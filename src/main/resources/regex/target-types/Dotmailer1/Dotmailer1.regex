@@ -1,0 +1,1 @@
+(?i)(?:dotmailer).{0,40}b(apiuser-[a-z0-9]{12}@apiconnector.com)b

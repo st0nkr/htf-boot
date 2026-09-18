@@ -1,0 +1,1 @@
+-----BEGIN (?:EC|ECDSA) PRIVATE KEY-----s.*,ENCRYPTED(?:.|s)+?-----END (?:EC|ECDSA) PRIVATE KEY-----

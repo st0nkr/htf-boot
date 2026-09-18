@@ -16,11 +16,6 @@ import java.util.Set;
 
 public interface ICPE {
 
-    default boolean isValidCPE(Context ctx, CPE cpe) {
-        return true;
-    }
-
-
     default Cpe parseCPE(Context ctx, String str) {
         try {
             if(str == null) {

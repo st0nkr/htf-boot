@@ -1,5 +1,10 @@
 package com.teto;
 
+import com.teto.command.mac.LookupMacAddress;
+import com.teto.domain.mac.MacDetails;
+import com.teto.domain.target.Target;
+
+import java.util.Optional;
 import java.util.Random;
 
 public interface IMAC {
@@ -20,5 +25,17 @@ public interface IMAC {
         }
         sb.deleteCharAt(sb.length() - 1); // Remove last colon
         return sb.toString();
+    }
+
+    default Optional<MacDetails> lookupMac(String mac) {
+        return LookupMacAddress.lookup(mac);
+    }
+
+    default Optional<String> lookupMacManufacturer(String mac) {
+        return LookupMacAddress.lookupManufacturer(mac);
+    }
+
+    default Optional<MacDetails> lookupMac(Target target) {
+        return LookupMacAddress.lookup(target);
     }
 }

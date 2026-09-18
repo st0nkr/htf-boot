@@ -1,0 +1,1 @@
+service timestamps [a-z]{3,5} datetime msec|boot-[a-z]{3,5}-marker|interface [A-Za-z0-9]{0,10}[E,e]thernet

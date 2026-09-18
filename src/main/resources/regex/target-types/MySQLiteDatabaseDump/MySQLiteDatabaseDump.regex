@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS [[a-zA-Z]*];|CREATE TABLE [[a-zA-Z]*];

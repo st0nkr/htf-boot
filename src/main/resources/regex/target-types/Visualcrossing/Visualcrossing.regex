@@ -1,0 +1,1 @@
+(?i)(?:visualcrossing).{0,40}b([0-9A-Z]{25})b

@@ -1,0 +1,1 @@
+(?i)(?:currencylayer).{0,40}b([a-z0-9]{32})b

@@ -1,0 +1,1 @@
+(?i)(?:easyinsight|easy-insight).{0,40}b([0-9Aa-zA-Z]{20})b

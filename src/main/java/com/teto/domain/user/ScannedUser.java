@@ -34,6 +34,7 @@ public class ScannedUser implements Comparable<ScannedUser>{
     private Integer level;
     private String foundBy;
     private Integer confidence;
+    private String context;
 
     @Override
     public boolean equals(Object o) {
@@ -65,11 +66,9 @@ public class ScannedUser implements Comparable<ScannedUser>{
     @Override
     public String toString() {
         return "ScannedUser{" +
-                "firstName='" + firstName + '\'' +
-                ", userName='" + userName + '\'' +
-                ", level=" + level +
-                ", foundBy='" + foundBy + '\'' +
-                ", confidence=" + confidence +
+                "userName='" + userName + '\'' +
+                ", password='" + password + '\'' +
+                ", context='" + context + '\'' +
                 '}';
     }
 }

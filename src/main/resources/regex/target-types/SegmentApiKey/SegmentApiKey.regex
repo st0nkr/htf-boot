@@ -1,0 +1,2 @@
+(?i)(?:segment).{0,40}b([A-Za-z0-9_-a-zA-Z]{43}.[A-Za-z0-9_-a-zA-Z]{43})b
+segment[_-]?api[_-]?key(=| =|:| :)

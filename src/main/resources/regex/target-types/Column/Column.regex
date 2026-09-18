@@ -1,0 +1,1 @@
+(?i)(?:column).{0,40}b((?:test|live)_[a-zA-Z0-9]{27})b

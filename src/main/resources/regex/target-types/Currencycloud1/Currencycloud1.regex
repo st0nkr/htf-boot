@@ -1,0 +1,1 @@
+(?i)(?:currencycloud).{0,40}b([0-9a-z]{64})b

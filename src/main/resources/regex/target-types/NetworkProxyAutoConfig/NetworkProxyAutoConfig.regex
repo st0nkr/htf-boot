@@ -1,0 +1,1 @@
+proxy.pac|function FindProxyForURL(w+, w+)

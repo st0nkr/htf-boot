@@ -1,15 +1,32 @@
 package com.teto;
 
 import com.teto.command.Context;
+import com.teto.domain.local.TargetNode;
 import com.teto.domain.meta.Tag;
 import com.teto.domain.target.Target;
 import com.teto.domain.target.TargetType;
 import com.teto.domain.target.TargetTypeMapper;
+import us.springett.parsers.cpe.Cpe;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public interface ITarget extends IProperties, ICSV {
+public interface ITarget extends IProperties, ICSV, ICPE {
+
+    default boolean isLinux(Context ctx, Target os) {
+        if(os.getOsFamily() != null && os.getOsFamily().equalsIgnoreCase("Linux")) {
+            return true;
+        }
+        if(os.getOsVersion() != null && os.getOsVersion().contains("Linux")) {
+            return true;
+        }
+        if(os.getCpe() != null) {
+            Cpe cpe = parseCPE(ctx, os.getCpe());
+
+        }
+        return false;
+    }
     default boolean isIPV4(Target t) {
         TargetType tt = TargetType.fromString(t.getTargetType());
         return TargetType.Ipv4.equals(tt);
@@ -60,4 +77,24 @@ public interface ITarget extends IProperties, ICSV {
         return null;
     }
 
+    default Target getTarget(Context ctx, TargetNode node, TargetType tt) {
+        final List<Target> targets = new ArrayList<>();
+        for(Target target : node.getScannedTargets().getTargets()) {
+            TargetType tt1 = TargetType.fromString(target.getTargetType());
+            if(tt.equals(tt1)) {
+                return target;
+            }
+        }
+        return null;
+    }
+    default Target getTarget(Context ctx, TargetNode node, String serviceName) {
+        for(Target target : node.getScannedTargets().getTargets()) {
+            if(TargetType.Service.equals(getTargetType(ctx, target))) {
+                if(serviceName.equalsIgnoreCase(target.getName())) {
+                    return target;
+                }
+            }
+        }
+        return null;
+    }
 }

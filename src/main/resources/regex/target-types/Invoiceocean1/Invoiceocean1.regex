@@ -1,0 +1,1 @@
+(?i)(?:invoiceocean).{0,40}b([0-9A-Za-z]{20})b

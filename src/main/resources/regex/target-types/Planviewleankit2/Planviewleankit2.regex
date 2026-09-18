@@ -1,0 +1,1 @@
+(?i)(?:planviewleankit|planview).{0,40}(?:subdomain).b([a-zA-Z][a-zA-Z0-9.-]{1,23}[a-zA-Z0-9])b

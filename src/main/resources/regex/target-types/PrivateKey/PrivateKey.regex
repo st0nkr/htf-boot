@@ -1,0 +1,2 @@
+(?i)-----(?:(?:BEGIN|END) )(?:(?:EC|PGP|DSA|RSA|OPENSSH).)?PRIVATE.KEY(.BLOCK)?-----
+(?i)-----s*?BEGIN[ A-Z0-9_-]*?PRIVATE KEYs*?-----[sS]*?----s*?END[ A-Z0-9_-]*? PRIVATE KEYs*?-----

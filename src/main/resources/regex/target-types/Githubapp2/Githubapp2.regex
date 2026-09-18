@@ -1,0 +1,1 @@
+(?i)(?:github).{0,40}(-----BEGIN RSA PRIVATE KEY-----s[A-Za-z0-9+/s]*s-----END RSA PRIVATE KEY-----)

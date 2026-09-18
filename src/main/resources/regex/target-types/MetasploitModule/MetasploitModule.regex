@@ -1,0 +1,1 @@
+require 'msf/core'|class Metasploit|include Msf::Exploit::w+::w+

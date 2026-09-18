@@ -1,0 +1,1 @@
+(?i)(?:ringcentral).{0,40}b(https://www.[0-9A-Za-z_-]{1,}.com)b

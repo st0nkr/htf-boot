@@ -1,0 +1,1 @@
+(?i)(?:timezoneapi).{0,40}b([a-zA-Z0-9]{20})b

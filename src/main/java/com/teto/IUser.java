@@ -21,4 +21,15 @@ public interface IUser {
         }
         return new ArrayList<>(users);
     }
+    default List<ScannedUser> getUsersWithPasswords(Context ctx, TargetNode node, String context) {
+        Collection<ScannedUser> users = new TreeSet<>();
+        for(ScannedUser user : node.getScannedTargets().getUsers()) {
+            if(context.equalsIgnoreCase(user.getContext())) {
+                if(user.getPassword() != null) {
+                    users.add(user);
+                }
+            }
+        }
+        return new ArrayList<>(users);
+    }
 }

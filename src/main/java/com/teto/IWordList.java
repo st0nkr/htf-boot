@@ -1,4 +1,5 @@
 package com.teto;
 
-public class IWordList {
+public interface IWordList {
+    String ROCK_YOU = "/usr/share/wordlists/rockyou.txt";
 }

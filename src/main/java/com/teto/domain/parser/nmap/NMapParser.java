@@ -1,6 +1,7 @@
 package com.teto.domain.parser.nmap;
 
 import com.teto.IIPAddresses;
+import com.teto.IMAC;
 import com.teto.IOptional;
 import com.teto.IVersionNumber;
 import com.teto.command.Context;
@@ -8,6 +9,7 @@ import com.teto.command.nmap.CreateNMapScanFromFile;
 import com.teto.command.nmap.GuessOSName;
 import com.teto.domain.cve.CVE;
 import com.teto.domain.difficulty.Difficulty;
+import com.teto.domain.mac.MacDetails;
 import com.teto.domain.nmap.*;
 import com.teto.domain.parser.ParserRequest;
 import com.teto.domain.port.ServicePort;
@@ -21,7 +23,7 @@ import java.util.*;
 
 import static com.teto.domain.difficulty.Difficulty.GoodLuck;
 
-public class NMapParser implements IVersionNumber,INMapUtils,IOptional, IIPAddresses {
+public class NMapParser implements IVersionNumber,INMapUtils,IOptional, IMAC, IIPAddresses {
 
     public ScannedTargets parse(Context ctx, ParserRequest req) {
         ScannedTargets ret = new ScannedTargets();
@@ -42,6 +44,8 @@ public class NMapParser implements IVersionNumber,INMapUtils,IOptional, IIPAddre
                 }
                 Address addr = mergeAddresses(host.getAddresses());
                 parent.setMacAddress(addr.getMacAddr());
+                Optional<MacDetails> mac = lookupMac(parent);
+                mac.ifPresent(md -> parent.setName(md.getManufacturer()));
                 parent.setIpAddress(addr.getAddr());
                 parent.setTargetType(addr.getAddrType());
                 parent.setVendor(addr.getVendor());

@@ -1,0 +1,1 @@
+d{1,4} [ws]{1,20}(?:street|st|avenue|ave|road|rd|highway|hwy|square|sq|trail|trl|drive|dr|court|ct|park|parkway|pkwy|circle|cir|boulevard|blvd)W?(?=s|$)

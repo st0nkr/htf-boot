@@ -1,0 +1,1 @@
+(?i)(?:mindmeister).{0,40}b([a-zA-Z0-9]{43})b

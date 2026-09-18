@@ -1,0 +1,1 @@
+(?i)(?:neutrinoapi).{0,40}b([a-zA-Z0-9]{48})b

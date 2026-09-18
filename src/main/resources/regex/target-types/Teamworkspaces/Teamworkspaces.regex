@@ -1,0 +1,2 @@
+(?i)(?:teamwork|teamworkspaces).{0,40}b(tkn.v1_[0-9A-Za-z]{71}=[ 
+]{1})

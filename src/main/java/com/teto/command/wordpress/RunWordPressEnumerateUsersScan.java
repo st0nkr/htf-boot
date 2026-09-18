@@ -1,6 +1,6 @@
 package com.teto.command.wordpress;
 
-import com.teto.IScriptArgProvider;
+import com.teto.IScriptArgProvide;
 import com.teto.IScripts;
 import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
@@ -16,9 +16,10 @@ import com.teto.domain.url.Url;
 import java.util.Collection;
 import java.util.Optional;
 
-public class RunWordPressEnumerateUsersScan extends AbstractCommand<ScannedTargets> implements IScripts {
+public class RunWordPressEnumerateUsersScan extends AbstractCommand<ScannedTargets> implements IScripts, IScriptArgProvide {
     private final TargetNode node;
     private final Collection<Url> wordPressUrls;
+
     public RunWordPressEnumerateUsersScan(TargetNode node, Collection<Url> wordPressUrls) {
         this.node = node;
         this.wordPressUrls = wordPressUrls;
@@ -33,42 +34,8 @@ public class RunWordPressEnumerateUsersScan extends AbstractCommand<ScannedTarge
         if(isPresent(scp)) {
             final Script script = scp.get();
             fileName = createFileName(ctx, node.getTarget(), script);
-            Optional<RunCommandResponse> rsp = runScript(ctx, node.getTarget(), script, new IScriptArgProvider() {
-                @Override
-                public String getSpoofMAC() {
-                    return generateRandomMacAddress();
-                }
-
-                @Override
-                public String getSubnetMask() {
-                    return target.getSubNetMask();
-                }
-
-                @Override
-                public String getOutputFileName() {
-                    return createFileName(ctx, node.getTarget(), script);
-                }
-
-                @Override
-                public String getUrl() {
-                    return wordPressUrls.iterator().next().getUrl();
-                }
-
-                @Override
-                public String getUserAgent() {
-                    return randomFirefox(ctx);
-                }
-
-                @Override
-                public String getWordList() {
-                    return "";
-                }
-
-                @Override
-                public String getUserName() {
-                    return "";
-                }
-            });
+            String url = wordPressUrls.iterator().next().getUrl();
+            Optional<RunCommandResponse> rsp = runScript(ctx, node.getTarget(), script, sap(ctx,target,script,url));
             if(isPresent(rsp)) {
                 fileName = rsp.get().getOutputFileName();
             }

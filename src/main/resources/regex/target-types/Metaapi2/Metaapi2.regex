@@ -1,0 +1,1 @@
+(?i)(?:metaapi|meta-api).{0,40}b([0-9a-f]{24})b

@@ -1,0 +1,1 @@
+(?i)(?:faceplusplus).{0,40}b([0-9a-zA-Z_-]{32})b

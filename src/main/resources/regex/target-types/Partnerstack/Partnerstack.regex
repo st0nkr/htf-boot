@@ -1,0 +1,1 @@
+(?i)(?:partnerstack).{0,40}b([0-9A-Za-z]{64})b
