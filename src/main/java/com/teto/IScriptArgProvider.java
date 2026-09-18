@@ -11,4 +11,8 @@ public interface IScriptArgProvider {
     String getUrl();
 
     String getUserAgent();
+
+    String getWordList();
+
+    String getUserName();
 }

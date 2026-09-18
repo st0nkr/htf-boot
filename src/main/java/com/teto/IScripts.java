@@ -35,12 +35,15 @@ public interface IScripts extends IOptional, IDuration, ILogger, IProperties, IF
 
     default Optional<RunCommandResponse> runScript(Context ctx, Target target, Script script, IScriptArgProvider sap) {
         ParserRequest pr = new ParserRequest(target, Provenance.fromString(script.getName()));
-        pr.setOutputFileName(createFileName(ctx, target, script));
+        pr.setOutputFileName(sap.getOutputFileName());
         info(this,"Output -> "+pr.getOutputFileName());
         boolean forceReScan = propertyBoolean(ctx, Tag.ForceReScan, false);
         // Create a CliMapper for script
         if(forceReScan || !fileExists(pr.getOutputFileName())) {
             String cmd = script.getCommandLine();
+            if(cmd.contains("$userName")) {
+                cmd = cmd.replace("$userName", sap.getUserName());
+            }
             if(cmd.contains("$spoofMac")) {
                 cmd = cmd.replace("$spoofMac", sap.getSpoofMAC());
             }
@@ -63,6 +66,10 @@ public interface IScripts extends IOptional, IDuration, ILogger, IProperties, IF
 
             if(cmd.contains("$userAgent")) {
                 cmd = cmd.replace("$userAgent", sap.getUserAgent());
+            }
+
+            if(cmd.contains("$wordList")) {
+                cmd = cmd.replace("$wordList", sap.getWordList());
             }
             info(this,"Command -> "+cmd);
             Optional<RunCommandResponse> rsp = ctx.apply(new RunCommand(cmd, 0, minutes(30)));

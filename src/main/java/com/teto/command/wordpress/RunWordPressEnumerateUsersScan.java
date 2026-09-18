@@ -10,6 +10,7 @@ import com.teto.domain.parser.wordpress.WordPressParser;
 import com.teto.domain.provenance.Provenance;
 import com.teto.domain.script.Script;
 import com.teto.domain.target.ScannedTargets;
+import com.teto.domain.target.Target;
 import com.teto.domain.url.Url;
 
 import java.util.Collection;
@@ -26,6 +27,7 @@ public class RunWordPressEnumerateUsersScan extends AbstractCommand<ScannedTarge
     @Override
     public Optional<ScannedTargets> apply(Context ctx) {
         ScannedTargets st = new ScannedTargets();
+        final Target target = node.getTarget();
         Optional<Script> scp = getScript(ctx, Provenance.WordPressEnumerateUsers);
         String fileName = null;
         if(isPresent(scp)) {
@@ -39,7 +41,7 @@ public class RunWordPressEnumerateUsersScan extends AbstractCommand<ScannedTarge
 
                 @Override
                 public String getSubnetMask() {
-                    return "";
+                    return target.getSubNetMask();
                 }
 
                 @Override
@@ -55,6 +57,16 @@ public class RunWordPressEnumerateUsersScan extends AbstractCommand<ScannedTarge
                 @Override
                 public String getUserAgent() {
                     return randomFirefox(ctx);
+                }
+
+                @Override
+                public String getWordList() {
+                    return "";
+                }
+
+                @Override
+                public String getUserName() {
+                    return "";
                 }
             });
             if(isPresent(rsp)) {

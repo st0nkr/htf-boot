@@ -7,12 +7,10 @@ import com.teto.domain.provenance.Provenance;
 import com.teto.domain.target.ScannedTargets;
 import com.teto.domain.target.Target;
 import com.teto.domain.user.ScannedUser;
-import org.apache.catalina.User;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Optional;
-import java.util.Set;
 
 public class WordPressParser implements IFile, IJSON {
     public ScannedTargets parse(Context ctx, Target target, String fileName) {
