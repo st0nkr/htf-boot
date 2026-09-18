@@ -118,6 +118,15 @@ public class Target implements Comparable<Target> {
     private String difficulty;
     private String macAddress;
 
+    private String kernalName;
+    private String nodeName;
+    private String kernelRelease;
+    private String kernelVersion;
+    private String machineName;
+    private String processors;
+    private String hardwarePlatform;
+    private String osName;
+
     public static Target create() {
         Target t = new Target();
         return t;

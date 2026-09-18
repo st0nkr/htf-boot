@@ -147,6 +147,7 @@ public enum Provenance {
 
     DirBuster,
 
+    SSHJ,
     LocateWebForms,
     LocateLoginWebForms,
     ProbeWebSite,

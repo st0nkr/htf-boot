@@ -19,7 +19,6 @@ public class ExtractTargetTypes extends AbstractCommand<Map<TargetType, Collecti
     private Map<TargetType, Collection<String>> extractTargets(Context ctx, String str) {
         final Map<TargetType, Collection<String>> map = new HashMap<>();
         for(TargetType tt : TargetType.values()) {
-
             List<Pattern> patterns = getTargetTypePatterns(ctx, tt);
             if(!patterns.isEmpty()) {
                 for (Pattern pattern : patterns) {

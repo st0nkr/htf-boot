@@ -35,6 +35,11 @@ public class ScannedUser implements Comparable<ScannedUser>{
     private String foundBy;
     private Integer confidence;
     private String context;
+    private Integer uid;
+    private Integer gid;
+    private String userInfo;
+    private String homeDirectory;
+    private String shell;
 
     @Override
     public boolean equals(Object o) {
