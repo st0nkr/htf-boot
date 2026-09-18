@@ -1,11 +1,15 @@
 package com.teto.command.exec;
 
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 public class RunCommandResponse {
     private Integer exitCode;
     private String output;
     private String error;
-
+    private String outputFileName;
 
     public RunCommandResponse() {
 
@@ -15,27 +19,4 @@ public class RunCommandResponse {
         this.output = response;
     }
 
-    public Integer getExitCode() {
-        return exitCode;
-    }
-
-    public void setExitCode(Integer exitCode) {
-        this.exitCode = exitCode;
-    }
-
-    public String getOutput() {
-        return output;
-    }
-
-    public void setOutput(String output) {
-        this.output = output;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        this.error = error;
-    }
 }

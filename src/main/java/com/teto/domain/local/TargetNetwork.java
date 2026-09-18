@@ -12,11 +12,11 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class LocalNetwork implements Serializable {
+public class TargetNetwork implements Serializable {
     private final Target me;
-    private List<LocalTarget> localTargets = new ArrayList<>();
+    private List<TargetNode> targetNodes = new ArrayList<>();
 
-    public LocalNetwork(Target me) {
+    public TargetNetwork(Target me) {
         this.me = me;
     }
 

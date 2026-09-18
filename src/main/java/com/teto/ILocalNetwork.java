@@ -4,26 +4,25 @@ import com.teto.command.Context;
 import com.teto.command.local.CreateLocalNetwork;
 import com.teto.command.services.DetectAllLocalHostServices;
 import com.teto.command.target.SaveLocalTargets;
-import com.teto.domain.local.LocalNetwork;
-import com.teto.domain.local.LocalTarget;
+import com.teto.domain.local.TargetNetwork;
+import com.teto.domain.local.TargetNode;
 import com.teto.domain.target.Target;
 import com.teto.domain.target.TargetType;
 
 import java.util.Optional;
 
 public interface ILocalNetwork extends IOptional, ITarget, ILogger{
-    default Optional<LocalNetwork> getLocalNetwork(Context ctx, boolean detectServices) {
-        LocalNetwork ln = ctx.fetch(LocalNetwork.class);
+    default Optional<TargetNetwork> getLocalNetwork(Context ctx, boolean detectServices) {
+        TargetNetwork ln = ctx.fetch(TargetNetwork.class);
         if(ln == null) {
-            Optional<LocalNetwork> ret = ctx.apply(new CreateLocalNetwork());
+            Optional<TargetNetwork> ret = ctx.apply(new CreateLocalNetwork());
             if(isPresent(ret)) {
                 ctx.apply(new SaveLocalTargets(ret.get()));
                 ctx.stash(ln = ret.get());
-                if(detectServices && !ln.getLocalTargets().isEmpty()) {
-                    for(LocalTarget lt : ln.getLocalTargets()) {
+                if(detectServices && !ln.getTargetNodes().isEmpty()) {
+                    for(TargetNode lt : ln.getTargetNodes()) {
                         Target target = lt.getTarget();
                         TargetType tt = getTargetType(ctx, target);
-                        info(this,"Only interested in virtual box targets");
                         if(tt != null) {
                             switch(tt) {
                                 case VirtualBox -> ctx.apply(new DetectAllLocalHostServices(lt));

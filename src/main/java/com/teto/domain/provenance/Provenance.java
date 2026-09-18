@@ -253,7 +253,7 @@ public enum Provenance {
     PureDNS,
     HakCrawler,
     NaaBu,
-    WordPressScan,
+    WordPressEnumerateUsers,
     Uncover,
     ASNMap,
     AttackSurfaceMapper,

@@ -1,5 +1,6 @@
 package com.teto.command.local;
 
+import com.teto.IScriptArgProvider;
 import com.teto.IScripts;
 import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
@@ -19,6 +20,34 @@ public class RunArpLocal extends AbstractCommand<ScannedTargets> implements IScr
         this.parent = parent;
     }
 
+    private IScriptArgProvider sap(final Context ctx) {
+        return new IScriptArgProvider() {
+            @Override
+            public String getSpoofMAC() {
+                return generateRandomMacAddress();
+            }
+
+            @Override
+            public String getSubnetMask() {
+                return parent.getSubNetMask();
+            }
+
+            @Override
+            public String getOutputFileName() {
+                return null;
+            }
+
+            @Override
+            public String getUrl() {
+                return toUrl(parent);
+            }
+
+            @Override
+            public String getUserAgent() {
+                return randomFirefox(ctx);
+            }
+        };
+    }
     @Override
     public Optional<ScannedTargets> apply(Context ctx) {
         Optional<Script> script = getScript(ctx, Provenance.ArpNames);

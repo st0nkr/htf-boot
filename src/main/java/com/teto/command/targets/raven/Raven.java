@@ -1,30 +1,32 @@
 package com.teto.command.targets.raven;
 
+import com.teto.ILocalNetwork;
+import com.teto.IScripts;
+import com.teto.ITargetNode;
 import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
 import com.teto.command.attack.IdentifyAttackVectors;
+import com.teto.command.reconnaissance.Reconnaissance;
 import com.teto.domain.attack.AttackVector;
-import com.teto.domain.local.LocalNetwork;
-import com.teto.domain.local.LocalTarget;
+import com.teto.domain.local.TargetNetwork;
+import com.teto.domain.local.TargetNode;
 import com.teto.domain.target.TargetType;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
-public class Raven extends AbstractCommand<Void> {
-    private final LocalNetwork localNetwork;
-
-    public Raven(LocalNetwork localNetwork) {
-        this.localNetwork = localNetwork;
-    }
+public class Raven extends AbstractCommand<Void> implements IScripts, ILocalNetwork, ITargetNode {
 
     @Override
     public Optional<Void> apply(Context ctx) {
-        for(LocalTarget local : localNetwork.getLocalTargets()) {
-            TargetType tt = targetType(local);
-            switch(tt) {
-                case VirtualBox -> ctx.apply(new IdentifyAttackVectors(new AttackVector(local.getTarget(), local.getScannedTargets())));
+        info(this,"Cracking Raven....");
+        final Optional<TargetNetwork> tn = getLocalNetwork(ctx, true);
+        final TargetNetwork targetNetwork = tn.get();
+
+        for(TargetNode node : targetNetwork.getTargetNodes()) {
+            info(this, "Node Type: " + node.getTarget().getTargetType());
+            if(isAVirtualBox(ctx, node)) {
+                ctx.apply(new Reconnaissance(node));
+                ctx.apply(new IdentifyAttackVectors(node));
             }
         }
 
@@ -32,7 +34,7 @@ public class Raven extends AbstractCommand<Void> {
         return Optional.empty();
     }
 
-    private TargetType targetType(LocalTarget local) {
+    private TargetType targetType(TargetNode local) {
         String tt = local.getTarget().getTargetType();
         return TargetType.fromString(tt);
     }

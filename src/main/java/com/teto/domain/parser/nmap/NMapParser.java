@@ -348,7 +348,6 @@ public class NMapParser implements IVersionNumber,INMapUtils,IOptional, IIPAddre
                     case "java-rmi":
                     case "ssh": break;
                     default:
-                        System.out.println("ServiceName unknown ===>"+serviceName);
                 }
             }
             sp.setName(serviceName);

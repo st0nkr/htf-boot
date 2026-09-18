@@ -26,7 +26,6 @@ public class RunQuickLocalNetworkScan extends AbstractCommand<ScannedTargets>
         this.target = target;
     }
 
-
     @Override
     public Optional<ScannedTargets> apply(Context ctx) {
         Optional<ScannedTargets> st = ctx.apply(new RunArpLocal(target));
@@ -37,7 +36,7 @@ public class RunQuickLocalNetworkScan extends AbstractCommand<ScannedTargets>
             }
         }
         Optional<Script> script = getScript(ctx, Provenance.QuickLocalNetworkScan);
-        ParserRequest pr = new ParserRequest(target, Provenance.DetectAllServices);
+        ParserRequest pr = new ParserRequest(target, Provenance.QuickLocalNetworkScan);
         pr.setOutputFileName(createFileName(ctx, target, script.get()));
         boolean forceReScan = propertyBoolean(ctx, Tag.ForceReScan, false);
         // Create a CliMapper for script

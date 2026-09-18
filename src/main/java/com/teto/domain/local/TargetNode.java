@@ -11,13 +11,13 @@ import java.util.Collection;
 
 @Setter
 @Getter
-public class LocalTarget {
+public class TargetNode {
     private final Target target;
     private TargetType targetType;
     private Collection<Target> services = new ArrayList<>();
     private ScannedTargets scannedTargets;
 
-    public LocalTarget(Target target) {
+    public TargetNode(Target target) {
         this.target = target;
     }
 }

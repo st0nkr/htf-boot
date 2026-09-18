@@ -1,15 +1,15 @@
 package com.teto.domain.script;
 
-import com.teto.IArp;
-import com.teto.INMap;
-import com.teto.ISearchSploit;
+import com.teto.*;
 import com.teto.command.Context;
 import com.teto.domain.provenance.Provenance;
 
-public class ScriptManager implements INMap, ISearchSploit, IArp {
+public class ScriptManager implements INMap, ISearchSploit, IArp, IWPScan, IGoBuster {
 
     public Script getScript(Context ctx, Provenance prov) {
         switch(prov) {
+            case WordPressEnumerateUsers: return wordPressEnumerateUsers(ctx);
+            case GoBusterDir: return goBusterDir(ctx);
             case ArpNames: return arpNames(ctx);
             case QuickLocalNetworkScan: return quickLocalNetworkScan(ctx);
             case DetectAllServices: return detectAllServices(ctx);

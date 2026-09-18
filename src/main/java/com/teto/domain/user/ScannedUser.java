@@ -3,6 +3,10 @@ package com.teto.domain.user;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.teto.domain.annotation.Meta;
 import com.teto.domain.meta.Tag;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,29 +17,23 @@ import java.util.Objects;
 @NoArgsConstructor
 @Setter
 @Getter
+@Entity
 public class ScannedUser implements Comparable<ScannedUser>{
-    @Meta(tag = Tag.ID, id = true)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Meta(tag = Tag.ParentId)
-    private Integer parentId;
-    @Meta(tag = Tag.Provenance)
+    private Long parentId;
     private String provenance;
-    @Meta(tag = Tag.FirstName)
     private String firstName;
-    @Meta(tag = Tag.MiddelNames)
     private String middleNames;
-    @Meta(tag = Tag.Surname)
     private String surname;
-    @Meta(tag = Tag.Email)
     private String email;
-    @Meta(tag = Tag.UserName)
     private String userName;
-    @Meta(tag = Tag.Password)
     private String password;
-    @Meta(tag = Tag.ParentType)
     private String parentType;
-    @Meta(tag = Tag.Level)
     private Integer level;
+    private String foundBy;
+    private Integer confidence;
 
     @Override
     public boolean equals(Object o) {
@@ -53,8 +51,25 @@ public class ScannedUser implements Comparable<ScannedUser>{
     public int compareTo(ScannedUser o) {
         int cmp = getUserName().compareTo(o.getUserName());
         if(cmp != 0) return cmp;
-        cmp = getEmail().compareTo(o.getEmail());
-        if(cmp != 0) return cmp;
+        if(getEmail() != null && o.getEmail() != null) {
+            cmp = getEmail().compareTo(o.getEmail());
+            if (cmp != 0) return cmp;
+        }
+        if(getSurname() != null && o.getSurname() != null) {
+            cmp = getSurname().compareTo(o.getSurname());
+            if (cmp != 0) return cmp;
+        }
         return cmp;
+    }
+
+    @Override
+    public String toString() {
+        return "ScannedUser{" +
+                "firstName='" + firstName + '\'' +
+                ", userName='" + userName + '\'' +
+                ", level=" + level +
+                ", foundBy='" + foundBy + '\'' +
+                ", confidence=" + confidence +
+                '}';
     }
 }
