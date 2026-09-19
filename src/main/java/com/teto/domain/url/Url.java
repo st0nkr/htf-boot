@@ -44,7 +44,10 @@ public class Url implements Comparable<Url> {
     private Long parentId;
     private Integer level;
     private String parentType;
-
+    private Integer contentLength;
+    private String contentType;
+    private String redirect;
+    private Integer status;
     @Override
     public String toString() {
         return "Url{" +

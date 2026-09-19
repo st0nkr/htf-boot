@@ -6,8 +6,10 @@ import com.teto.command.Context;
 import com.teto.domain.provenance.Provenance;
 import com.teto.domain.target.ScannedTargets;
 import com.teto.domain.target.Target;
+import com.teto.domain.url.Url;
 import com.teto.domain.user.ScannedUser;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Optional;
@@ -20,27 +22,30 @@ public class DirSearchParser implements IFile, IJSON {
             Optional<LinkedHashMap> obj = fromJson(contents.get(), LinkedHashMap.class);
             if(obj.isPresent()) {
                 LinkedHashMap lhm = obj.get();
-                LinkedHashMap users = (LinkedHashMap) lhm.get("users");
-                if(users != null) {
-                    Iterator iter = users.keySet().iterator();
-                    while(iter.hasNext()) {
-                        String userName = (String) iter.next();
-
-                        ScannedUser user = new ScannedUser();
-                        user.setFirstName(userName);
-                        user.setUserName(userName);
-                        user.setProvenance(Provenance.WordPressEnumerateUsers.name());
-                        user.setParentId(target.getId());
-                        user.setParentType(target.getTargetType());
-                        user.setLevel(target.getLevel()+1);
-                        LinkedHashMap details = (LinkedHashMap) users.get(userName);
-                        user.setFoundBy((String) details.get("found_by"));
-                        user.setConfidence((Integer) details.get("confidence"));
-                        st.getUsers().add(user);
+                ArrayList results = (ArrayList) lhm.get("results");
+                for(int idx = 0; idx < results.size(); idx++) {
+                    LinkedHashMap item = (LinkedHashMap) results.get(idx);
+                    Url url = convertToUrl(ctx, target, item);
+                    if(url != null) {
+                        st.getUrls().add(url);
                     }
                 }
             }
         }
         return st;
+    }
+
+    private Url convertToUrl(Context ctx, Target target, LinkedHashMap lhm) {
+        Url u = new Url();
+        u.setParentId(target.getId());
+        u.setLevel(target.getLevel()+1);
+        u.setProvenance(Provenance.DirSearch.name());
+        u.setParentType(target.getTargetType());
+        u.setUrl((String) lhm.get("url"));
+        u.setContentLength((Integer) lhm.get("content-length"));
+        u.setContentType((String) lhm.get("content-type"));
+        u.setRedirect((String) lhm.get("redirect"));
+        u.setStatus((Integer) lhm.get("status"));
+        return u;
     }
 }

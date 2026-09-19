@@ -30,9 +30,8 @@ public class GatherDirSearchDirectories extends AbstractCommand<Void> implements
         List<Target> targets = getTargets(ctx, node, TargetType.Service, 80l);
         Target http = targets.get(0);
         Optional<Script> script = getScript(ctx, Provenance.DirSearch);
-        String fileName = null;
+        String fileName = createFileName(ctx, http, script.get());;
         if(isPresent(script)) {
-            fileName = createFileName(ctx, http, script.get());
             Optional<RunCommandResponse> rsp = runScript(ctx, http, script.get());
             if(isPresent(rsp)) {
                 fileName = rsp.get().getOutputFileName();
