@@ -4,6 +4,10 @@ import com.teto.domain.bash.Bash;
 
 public interface IBash {
 
+    default Bash dirExists(String fileName) {
+        String cmd = "test -d " + fileName + " && echo \"yep\" || echo \"nope\"";
+        return new Bash(cmd, false,"yep","nope");
+    }
     default Bash fileExists(String fileName) {
         String cmd = "test -f " + fileName + " && echo \"yep\" || echo \"nope\"";
         return new Bash(cmd, false,"yep","nope");

@@ -3,6 +3,7 @@ package com.teto.domain.script;
 public enum ScriptCategory {
     // $Tag
     NMAP,
+    PrivilegeEscalation,
     ARP,
     LDAP,
     NamedService,

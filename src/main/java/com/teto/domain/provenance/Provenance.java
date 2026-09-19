@@ -12,7 +12,8 @@ public enum Provenance {
     AutoRecon(-1),
     DnsRecon(-1),
     Dalfox(-1),
-
+    LinEnum,
+    DirSearch,
     WafDetect(0),
     QconnExec("qconn-exec", 1),
     DetectOs(1),

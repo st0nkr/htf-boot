@@ -16,6 +16,10 @@ import java.util.concurrent.TimeUnit;
 
 public interface ISSH {
 
+    default List<String> sshCommand(Context ctx, String cmd) {
+        return sshCommand(ctx, sshClient(ctx) , cmd);
+    }
+
     default SSHClient sshClient(Context ctx) {
         return ctx.fetch(SSHClient.class);
     }

@@ -4,6 +4,8 @@ import com.teto.*;
 import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
 import com.teto.domain.local.TargetNode;
+import com.teto.domain.meta.Tag;
+import com.teto.domain.parser.linenum.LinEnumParser;
 import com.teto.domain.passwd.Passwd;
 import com.teto.domain.passwd.PasswdItem;
 import com.teto.domain.provenance.Provenance;
@@ -12,12 +14,16 @@ import com.teto.domain.target.TargetType;
 import com.teto.domain.uname.Uname;
 import com.teto.domain.user.ScannedUser;
 import net.schmizz.sshj.SSHClient;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public class SSHLoginLinux extends AbstractCommand<Void> implements IUser, IBash, ISSHLinux, IPasswd, ITarget {
+public class SSHLoginLinux extends AbstractCommand<Void> implements IUser, IBash, ISSHLinux, IPasswd, ITarget{
     private final TargetNode node;
 
     public SSHLoginLinux(TargetNode node) {
@@ -50,8 +56,11 @@ public class SSHLoginLinux extends AbstractCommand<Void> implements IUser, IBash
                 if(sshClient == null) {
                     continue;
                 }
-                final List<String> osRelease = sshOSRelease(ctx);
+                if(!uploadAndExecuteLinEnum(ctx, sshClient)) {
+                    return empty();
+                }
 
+                final List<String> osRelease = sshOSRelease(ctx);
                 final Uname uname = sshUname(ctx);
                 alignDetails(os, uname);
 
@@ -59,6 +68,12 @@ public class SSHLoginLinux extends AbstractCommand<Void> implements IUser, IBash
                 List<ScannedUser> usrs = createUsers(ctx, os, passwd);
                 info(this, "Add all system users");
                 node.getScannedTargets().getUsers().addAll(usrs);
+
+                sshCommand(ctx,"history -c");
+                for(String dir : node.getDirectoriesCreated()) {
+                    sshCommand(ctx, sshClient, "rm -rf "+dir);
+                }
+                node.getDirectoriesCreated().clear();
                 sshClient.close();
             }
         } catch(Exception e) {
@@ -67,6 +82,71 @@ public class SSHLoginLinux extends AbstractCommand<Void> implements IUser, IBash
         return Optional.empty();
     }
 
+    private boolean uploadAndExecuteLinEnum(Context ctx, SSHClient sshClient) {
+        boolean res = sshDirExists(ctx, sshClient,"/tmp/htf");
+        if(!res) {
+            res = sshCreateDirectory(ctx, sshClient, "/tmp/htf");
+            if (!res) {
+                warn(this, "Failed to create remote directory /tmp/htf");
+                return false;
+            }
+            info(this, "Remote Directory /tmp/htf created");
+        }
+        node.getDirectoriesCreated().add("/tmp/htf");
+
+        String fileName = property(ctx, Tag.LinEnum);
+        res = sshFileExists(ctx, sshClient, "/tmp/htf/"+new File(fileName).getName());
+        if(!res) {
+            res = sshUploadFile(ctx, sshClient, fileName,"/tmp/htf");
+            if(!res) {
+                warn(this,"Failed to upload file "+fileName+" to remote");
+                return res;
+            }
+        }
+
+        info(this,"Uploaded file "+fileName+" to remote system");
+
+        res = sshFileExists(ctx, sshClient, "/tmp/htf/"+new File(fileName).getName());
+        if(!res) {
+            warn(this,"File /tmp/htf"+new File(fileName).getName()+" failed to upload or has been deleted");
+            return res;
+        }
+        info(this,"File remote file /tmp/htf"+new File(fileName).getName()+" exists");
+
+        sshCommand(ctx, sshClient,"chmod +x /tmp/htf/"+new File(fileName).getName());
+
+        info(this,"Executing remote file /tmp/htf/"+new File(fileName).getName());
+        List<String> lines = sshCommand(ctx, sshClient, "/tmp/htf/LinEnum.sh");
+        if(lines != null && !lines.isEmpty()) {
+            info(this,"Remote file /tmp/htf"+new File(fileName).getName()+" executed ok");
+            String linEnumFile = node.getPrivilegeEscalationScripts().get(Provenance.LinEnum);
+            saveFile(linEnumFile, lines);
+            LinEnumParser parser = new LinEnumParser();
+            parser.parse(ctx, linEnumFile);
+            return true;
+        }
+        warn(this, "No output received from executing file /tmp/htf"+new File(fileName).getName()+" ?? :(");
+        return false;
+    }
+    private boolean saveFile(String fileName, Collection<String> lines) {
+        StringBuilder sb = new StringBuilder();
+        for(var line : lines) {
+            sb.append(line).append("\n");
+        }
+        return saveFile(fileName, sb.toString());
+    }
+    private boolean saveFile(String fileName, String contents) {
+        try {
+            File parent = new File(fileName).getParentFile();
+            if(parent != null &&  !parent.exists()) {
+                parent.mkdirs();
+            }
+            FileUtils.writeStringToFile(new File(fileName), contents, Charset.forName("UTF-8"));
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
     private void alignDetails(Target os, Uname uname) {
         os.setHardwarePlatform(uname.getHardwarePlatform());
         os.setKernalName(uname.getKernalName());
