@@ -19,10 +19,12 @@ import java.util.Optional;
 public class CrackSSHPassword extends AbstractCommand<Collection<ScannedUser>> implements IPort, IMerge, IScripts, IScriptArgProvide, IWordList {
     private final TargetNode node;
     private final List<ScannedUser> users;
+    private final String passwordFile;
 
-    public CrackSSHPassword(TargetNode node, List<ScannedUser> users) {
+    public CrackSSHPassword(TargetNode node, List<ScannedUser> users, String passwordFile) {
         this.node = node;
         this.users = users;
+        this.passwordFile = passwordFile;
     }
 
 
@@ -34,14 +36,25 @@ public class CrackSSHPassword extends AbstractCommand<Collection<ScannedUser>> i
             final Script script = scp.get();
             final Target target = node.getTarget();
             for(ScannedUser user : users) {
-                IScriptArgProvider sap = sap(ctx, node, script, user, ROCK_YOU);
-                Optional<RunCommandResponse> rsp = runScript(ctx, target, script, sap(ctx, node, script, user, ROCK_YOU));
+                if(user.getPassword() != null && !user.getPassword().isEmpty()) {
+                    info(this,"User "+user.getUserName()+" has been cracked already => "+user.getPassword());
+                    continue;
+                }
+                IScriptArgProvider sap = sap(ctx, node, script, user, passwordFile);
+                if(!fileExists(sap.getOutputFileName())) {
+                    info(this, "Running Hydra SSH for user "+user.getUserName()+" password file "+passwordFile);
+                    Optional<RunCommandResponse> rsp = runScript(ctx, target, script, sap(ctx, node, script, user, passwordFile));
+                }
                 if(fileExists(sap.getOutputFileName())) {
                     HydraParser parser = new HydraParser();
                     ScannedUser scannedUser = parser.parse(ctx, node.getTarget(), sap.getOutputFileName());
                     if(scannedUser != null) {
                         info(this,"We need to add user per context as passwords could be different");
                         ScannedUser merged = merge(scannedUser, user);
+                        if(merged.getPassword() != null) {
+                            merged.setContext("ssh");
+                            info(this, "User "+merged.getUserName() +" => Password "+merged.getPassword()+" for "+merged.getContext());
+                        }
                         scannedUsers.add(merged);
                     }
                     scannedUsers.add(user);

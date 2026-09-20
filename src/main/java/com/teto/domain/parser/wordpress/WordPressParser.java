@@ -31,6 +31,7 @@ public class WordPressParser implements IFile, IJSON {
                         user.setUserName(userName);
                         user.setProvenance(Provenance.WordPressEnumerateUsers.name());
                         user.setParentId(target.getId());
+                        user.setContext("wordpress");
                         user.setParentType(target.getTargetType());
                         user.setLevel(target.getLevel()+1);
                         LinkedHashMap details = (LinkedHashMap) users.get(userName);

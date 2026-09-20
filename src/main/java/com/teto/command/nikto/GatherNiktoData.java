@@ -1,4 +1,4 @@
-package com.teto.command.gobuster;
+package com.teto.command.nikto;
 
 import com.teto.IAttackVector;
 import com.teto.IMerge;
@@ -9,41 +9,35 @@ import com.teto.command.Context;
 import com.teto.command.exec.RunCommandResponse;
 import com.teto.domain.local.TargetNode;
 import com.teto.domain.parser.gobuster.GoBusterParser;
+import com.teto.domain.parser.nikto.NiktoParser;
 import com.teto.domain.provenance.Provenance;
 import com.teto.domain.script.Script;
 import com.teto.domain.target.ScannedTargets;
 import com.teto.domain.target.Target;
-import com.teto.domain.target.TargetType;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-public class GatherGoBusterDirectories extends AbstractCommand<Void> implements ITargetNode, IScripts, IMerge, IAttackVector {
+public class GatherNiktoData extends AbstractCommand<Void> implements ITargetNode, IScripts, IMerge, IAttackVector {
     private final TargetNode node;
     private final Target target;
 
-    public GatherGoBusterDirectories(TargetNode node, Target target) {
+    public GatherNiktoData(TargetNode node, Target target) {
         this.node = node;
         this.target = target;
     }
 
     @Override
     public Optional<Void> apply(Context ctx) {
-        List<Target> targets = Arrays.asList(target);
-        Target http = targets.get(0);
-        Optional<Script> script = getScript(ctx, Provenance.GoBusterDir);
-        String fileName = createFileName(ctx, http, script.get());;
+        Optional<Script> script = getScript(ctx, Provenance.Nikto);
+        String fileName = createFileName(ctx, target, script.get());;
         if(isPresent(script)) {
-            Optional<RunCommandResponse> rsp = runScript(ctx, http, script.get());
-            if(isPresent(rsp)) {
-                fileName = rsp.get().getOutputFileName();
-            }
+            Optional<RunCommandResponse> rsp = runScript(ctx, target, script.get());
         }
-        info(this, "Node contains web server..."+http);
         if(fileName != null) {
-            GoBusterParser parser = new GoBusterParser();
-            ScannedTargets st = parser.parse(ctx, http, fileName);
+            NiktoParser parser = new NiktoParser();
+            ScannedTargets st = parser.parse(ctx, target, fileName);
             node.getScannedTargets().add(st);
         }
         return Optional.empty();

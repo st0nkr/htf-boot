@@ -13,6 +13,7 @@ public enum Provenance {
     DnsRecon(-1),
     Dalfox(-1),
     LinEnum,
+    LinPeas,
     DirSearch,
     WafDetect(0),
     QconnExec("qconn-exec", 1),
@@ -985,6 +986,12 @@ public enum Provenance {
         vals.remove(DropScanDataTables);
         vals.remove(TruncateScanData);
         return vals;
+    }
+
+    public static Provenance[] privilegeEscalation() {
+        return new Provenance[] {
+                LinPeas
+        };
     }
 
     public Integer getPriority() {

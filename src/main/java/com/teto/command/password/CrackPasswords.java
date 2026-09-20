@@ -1,5 +1,8 @@
 package com.teto.command.password;
 
+import com.teto.IPort;
+import com.teto.ITarget;
+import com.teto.ITargetNode;
 import com.teto.IUser;
 import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
@@ -10,7 +13,7 @@ import com.teto.domain.user.ScannedUser;
 import java.util.Collection;
 import java.util.Optional;
 
-public class CrackPasswords extends AbstractCommand<Void> implements IUser {
+public class CrackPasswords extends AbstractCommand<Void> implements IUser, ITarget, IPort,ITargetNode {
 
     private final TargetNode node;
 
@@ -20,9 +23,15 @@ public class CrackPasswords extends AbstractCommand<Void> implements IUser {
 
     @Override
     public Optional<Void> apply(Context ctx) {
-        Optional<Collection<ScannedUser>> crackedUsers = ctx.apply(new CrackSSHPassword(node, getUsers(ctx, node, Provenance.WordPressEnumerateUsers)));
-        if(isPresent(crackedUsers)) {
-            node.getScannedTargets().setUsers(crackedUsers.get());
+        for(String passwordFile : node.getPasswordFiles()) {
+            Long sshPort = getPort(ctx, node, "ssh");
+            if(sshPort != null) {
+                Optional<Collection<ScannedUser>> crackedUsers = ctx.apply(new CrackSSHPassword(node,
+                        getUsers(ctx, node, Provenance.WordPressEnumerateUsers), passwordFile));
+                if (isPresent(crackedUsers)) {
+                    node.getScannedTargets().getUsers().addAll(crackedUsers.get());
+                }
+            }
         }
         return Optional.empty();
     }

@@ -1,4 +1,4 @@
-package com.teto.command.ssh;
+package com.teto.command.ssh.linux;
 
 import com.teto.*;
 import com.teto.command.AbstractCommand;
@@ -6,6 +6,8 @@ import com.teto.command.Context;
 import com.teto.domain.local.TargetNode;
 import com.teto.domain.meta.Tag;
 import com.teto.domain.parser.linenum.LinEnumParser;
+import com.teto.domain.parser.linpeas.LinPeasParser;
+import com.teto.domain.parser.linpeas.LinPeasResult;
 import com.teto.domain.passwd.Passwd;
 import com.teto.domain.passwd.PasswdItem;
 import com.teto.domain.provenance.Provenance;
@@ -23,10 +25,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public class SSHLoginLinux extends AbstractCommand<Void> implements IUser, IBash, ISSHLinux, IPasswd, ITarget{
+public class GatherTargetInfoUsingLinuxSSH extends AbstractCommand<Void> implements IUser, IBash, ISSHLinux, IPasswd, ITarget{
     private final TargetNode node;
 
-    public SSHLoginLinux(TargetNode node) {
+    public GatherTargetInfoUsingLinuxSSH(TargetNode node) {
         this.node = node;
     }
 
@@ -34,6 +36,7 @@ public class SSHLoginLinux extends AbstractCommand<Void> implements IUser, IBash
     public Optional<Void> apply(Context ctx) {
         Target os = getTarget(ctx, node, TargetType.OperatingSystem);
         if(os == null) {
+            warn(this,"No linux operating system target found");
             return empty();
         }
         if(!isLinux(ctx, os)) {
@@ -54,25 +57,26 @@ public class SSHLoginLinux extends AbstractCommand<Void> implements IUser, IBash
             for(ScannedUser user : users) {
                 final SSHClient sshClient = sshClient(ctx, target, user);
                 if(sshClient == null) {
+                    user.setSshValid(false);
                     continue;
                 }
-                if(!uploadAndExecuteLinEnum(ctx, sshClient)) {
+                info(this,"Flag user "+user.getUserName()+" as valid ssh user");
+                user.setSshValid(true);
+                if(!uploadAndExecuteLinPeas(ctx, sshClient)) {
                     return empty();
                 }
-
-                final List<String> osRelease = sshOSRelease(ctx);
-                final Uname uname = sshUname(ctx);
-                alignDetails(os, uname);
-
                 final Passwd passwd = parseUsers(ctx, getPasswordFileContents(ctx, sshClient));
                 List<ScannedUser> usrs = createUsers(ctx, os, passwd);
                 info(this, "Add all system users");
                 node.getScannedTargets().getUsers().addAll(usrs);
 
-                sshCommand(ctx,"history -c");
+                info(this,"Clean up remote site of uploaded files etc");
                 for(String dir : node.getDirectoriesCreated()) {
+                    info(this,"Removing remote directory "+dir);
                     sshCommand(ctx, sshClient, "rm -rf "+dir);
                 }
+                sshCommand(ctx, sshClient, "rm -rf /tmp/linpeas*");
+
                 node.getDirectoriesCreated().clear();
                 sshClient.close();
             }
@@ -82,51 +86,56 @@ public class SSHLoginLinux extends AbstractCommand<Void> implements IUser, IBash
         return Optional.empty();
     }
 
-    private boolean uploadAndExecuteLinEnum(Context ctx, SSHClient sshClient) {
-        boolean res = sshDirExists(ctx, sshClient,"/tmp/htf");
-        if(!res) {
-            res = sshCreateDirectory(ctx, sshClient, "/tmp/htf");
+    private boolean uploadAndExecuteLinPeas(Context ctx, SSHClient sshClient) {
+        String linPas = node.getPrivilegeEscalationScripts().get(Provenance.LinPeas);
+        if(!new File(linPas).exists()) {
+            boolean res = sshDirExists(ctx, sshClient, "/tmp/htf");
             if (!res) {
-                warn(this, "Failed to create remote directory /tmp/htf");
-                return false;
+                res = sshCreateDirectory(ctx, sshClient, "/tmp/htf");
+                if (!res) {
+                    warn(this, "Failed to create remote directory /tmp/htf");
+                    return false;
+                }
+                info(this, "Remote Directory /tmp/htf created");
             }
-            info(this, "Remote Directory /tmp/htf created");
-        }
-        node.getDirectoriesCreated().add("/tmp/htf");
+            node.getDirectoriesCreated().add("/tmp/htf");
 
-        String fileName = property(ctx, Tag.LinEnum);
-        res = sshFileExists(ctx, sshClient, "/tmp/htf/"+new File(fileName).getName());
-        if(!res) {
-            res = sshUploadFile(ctx, sshClient, fileName,"/tmp/htf");
-            if(!res) {
-                warn(this,"Failed to upload file "+fileName+" to remote");
+            String fileName = property(ctx, Tag.LinPeas);
+            res = sshFileExists(ctx, sshClient, "/tmp/htf/" + new File(fileName).getName());
+            if (!res) {
+                res = sshUploadFile(ctx, sshClient, fileName, "/tmp/htf");
+                if (!res) {
+                    warn(this, "Failed to upload file " + fileName + " to remote");
+                    return res;
+                }
+            }
+
+            info(this, "Uploaded file " + fileName + " to remote system");
+
+            res = sshFileExists(ctx, sshClient, "/tmp/htf/" + new File(fileName).getName());
+            if (!res) {
+                warn(this, "File /tmp/htf/" + new File(fileName).getName() + " failed to upload or has been deleted");
                 return res;
             }
+            info(this, "File remote file /tmp/htf/" + new File(fileName).getName() + " exists");
+
+            sshCommand(ctx, sshClient, "chmod +x /tmp/htf/" + new File(fileName).getName());
+
+            info(this, "Executing remote file /tmp/htf/" + new File(fileName).getName());
+            List<String> lines = sshCommand(ctx, sshClient, "/tmp/htf/" + new File(fileName).getName() + " -q -N");
+            if (lines != null && !lines.isEmpty()) {
+                info(this, "Remote file /tmp/htf/" + new File(fileName).getName() + " executed ok");
+                saveFile(linPas, lines);
+
+            } else {
+                warn(this, "No output received from executing file /tmp/htf/" + new File(fileName).getName() + " ?? :(");
+            }
         }
-
-        info(this,"Uploaded file "+fileName+" to remote system");
-
-        res = sshFileExists(ctx, sshClient, "/tmp/htf/"+new File(fileName).getName());
-        if(!res) {
-            warn(this,"File /tmp/htf"+new File(fileName).getName()+" failed to upload or has been deleted");
-            return res;
-        }
-        info(this,"File remote file /tmp/htf"+new File(fileName).getName()+" exists");
-
-        sshCommand(ctx, sshClient,"chmod +x /tmp/htf/"+new File(fileName).getName());
-
-        info(this,"Executing remote file /tmp/htf/"+new File(fileName).getName());
-        List<String> lines = sshCommand(ctx, sshClient, "/tmp/htf/LinEnum.sh");
-        if(lines != null && !lines.isEmpty()) {
-            info(this,"Remote file /tmp/htf"+new File(fileName).getName()+" executed ok");
-            String linEnumFile = node.getPrivilegeEscalationScripts().get(Provenance.LinEnum);
-            saveFile(linEnumFile, lines);
-            LinEnumParser parser = new LinEnumParser();
-            parser.parse(ctx, linEnumFile);
-            return true;
-        }
-        warn(this, "No output received from executing file /tmp/htf"+new File(fileName).getName()+" ?? :(");
-        return false;
+        info(this, "Parsing linpeas output");
+        LinPeasParser parser = new LinPeasParser();
+        LinPeasResult peas = parser.parse(ctx, linPas);
+        node.setPeas(peas);
+        return true;
     }
     private boolean saveFile(String fileName, Collection<String> lines) {
         StringBuilder sb = new StringBuilder();

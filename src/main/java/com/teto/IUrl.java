@@ -9,23 +9,26 @@ import java.util.*;
 
 public interface IUrl extends IOptional{
 
-    default Optional<List<Url>> getUrls(Context ctx, TargetNode node, Provenance provenance) {
+    default Optional<List<Url>> getUrls(Context ctx, TargetNode node, Set<Provenance> provs) {
         Collection<Url> urls = node.getScannedTargets().getUrls();
         if(urls == null || urls.isEmpty()) {
             return empty();
         }
         final List<Url> urlList = new ArrayList<>(urls);
-        String name = provenance.name();
+        final Set<String> names = new HashSet<>();
+        provs.forEach(p -> {
+            names.add(p.name());
+        });
         for(Url url : urls) {
-            if(name.equalsIgnoreCase(url.getProvenance())) {
+            if(names.contains(url.getProvenance())) {
                 urlList.add(url);
             }
         }
         return optional(urlList);
     }
 
-    default Optional<Collection<Url>> getMatchingUrls(Context ctx, TargetNode node, Provenance p, String...endsWiths) {
-        Optional<List<Url>> urls = getUrls(ctx, node, p);
+    default Optional<Collection<Url>> getMatchingUrls(Context ctx, TargetNode node, Set<Provenance> provs, String...endsWiths) {
+        Optional<List<Url>> urls = getUrls(ctx, node, provs);
         if(urls.isEmpty()) {
             return empty();
         }

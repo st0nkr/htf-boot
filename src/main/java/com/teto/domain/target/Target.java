@@ -162,6 +162,7 @@ public class Target implements Comparable<Target> {
                 ", targetType='" + targetType + '\'' +
                 ", ipAddress='" + ipAddress + '\'' +
                 ", vendor='" + vendor + '\'' +
+                ", description='" + description + '\'' +
                 '}';
     }
 

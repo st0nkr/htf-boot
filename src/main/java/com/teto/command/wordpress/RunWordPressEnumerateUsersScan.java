@@ -43,6 +43,10 @@ public class RunWordPressEnumerateUsersScan extends AbstractCommand<ScannedTarge
         if(fileName != null) {
             WordPressParser parser = new WordPressParser();
             ScannedTargets stargs = parser.parse(ctx, node.getTarget(), fileName);
+
+            if(!node.getWordpressUsers().isEmpty()) {
+                stargs.getUsers().addAll(node.getWordpressUsers());
+            }
             node.getScannedTargets().add(stargs);
         }
         return optional(st);

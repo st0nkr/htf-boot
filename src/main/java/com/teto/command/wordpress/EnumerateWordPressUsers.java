@@ -12,6 +12,7 @@ import java.util.Optional;
 public class EnumerateWordPressUsers extends AbstractCommand<Void> {
     private final TargetNode node;
     private final Collection<Url> wordPressUrls;
+
     public EnumerateWordPressUsers(TargetNode node, Collection<Url> wordPressUrls) {
         this.node = node;
         this.wordPressUrls = wordPressUrls;

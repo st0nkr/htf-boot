@@ -48,6 +48,9 @@ public class Url implements Comparable<Url> {
     private String contentType;
     private String redirect;
     private Integer status;
+    private String message;
+    private String refs;
+    private String eyeDee;
     @Override
     public String toString() {
         return "Url{" +

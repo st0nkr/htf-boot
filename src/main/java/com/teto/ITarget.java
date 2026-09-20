@@ -14,6 +14,13 @@ import java.util.List;
 
 public interface ITarget extends IProperties, ICSV, ICPE {
 
+    default boolean isWindows(Context ctx, Target os) {
+        if(os.getOsFamily() != null && os.getOsFamily().equalsIgnoreCase("Windows")) {
+            return true;
+        }
+        return false;
+    }
+
     default boolean isLinux(Context ctx, Target os) {
         if(os.getOsFamily() != null && os.getOsFamily().equalsIgnoreCase("Linux")) {
             return true;
@@ -27,6 +34,7 @@ public interface ITarget extends IProperties, ICSV, ICPE {
         }
         return false;
     }
+
     default boolean isIPV4(Target t) {
         TargetType tt = TargetType.fromString(t.getTargetType());
         return TargetType.Ipv4.equals(tt);

@@ -4,12 +4,14 @@ import com.teto.*;
 import com.teto.command.Context;
 import com.teto.domain.provenance.Provenance;
 
-public class ScriptManager implements INMap, ISearchSploit, IArp, IWPScan, ILinEnum, IDirSearch, IHydra, IGoBuster {
+public class ScriptManager implements INMap, ISearchSploit, IArp, INikto,ILinPeas,IWPScan, ILinEnum, IDirSearch, IHydra, IGoBuster {
 
     public Script getScript(Context ctx, Provenance prov) {
         switch(prov) {
+            case Nikto: return nikto(ctx);
             case DirSearch: return dirSearch(ctx);
             case LinEnum: return linEnum(ctx);
+            case LinPeas: return linPeas(ctx);
             case HydraSSH: return hydraSSH(ctx);
             case WordPressEnumerateUsers: return wordPressEnumerateUsers(ctx);
             case GoBusterDir: return goBusterDir(ctx);

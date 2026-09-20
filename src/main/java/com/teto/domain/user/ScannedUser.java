@@ -40,18 +40,8 @@ public class ScannedUser implements Comparable<ScannedUser>{
     private String userInfo;
     private String homeDirectory;
     private String shell;
+    private Boolean sshValid;
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        ScannedUser user = (ScannedUser) o;
-        return Objects.equals(firstName, user.firstName) && Objects.equals(middleNames, user.middleNames) && Objects.equals(surname, user.surname) && Objects.equals(email, user.email) && Objects.equals(userName, user.userName) && Objects.equals(password, user.password);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(firstName, middleNames, surname, email, userName, password);
-    }
 
     @Override
     public int compareTo(ScannedUser o) {
@@ -65,7 +55,23 @@ public class ScannedUser implements Comparable<ScannedUser>{
             cmp = getSurname().compareTo(o.getSurname());
             if (cmp != 0) return cmp;
         }
+        if(getContext() != null && o.getContext() != null) {
+            cmp = getContext().compareTo(o.getContext());
+            if (cmp != 0) return cmp;
+        }
         return cmp;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        ScannedUser that = (ScannedUser) o;
+        return Objects.equals(id, that.id) && Objects.equals(parentId, that.parentId) && Objects.equals(provenance, that.provenance) && Objects.equals(firstName, that.firstName) && Objects.equals(middleNames, that.middleNames) && Objects.equals(surname, that.surname) && Objects.equals(email, that.email) && Objects.equals(userName, that.userName) && Objects.equals(password, that.password) && Objects.equals(parentType, that.parentType) && Objects.equals(level, that.level) && Objects.equals(foundBy, that.foundBy) && Objects.equals(confidence, that.confidence) && Objects.equals(context, that.context) && Objects.equals(uid, that.uid) && Objects.equals(gid, that.gid) && Objects.equals(userInfo, that.userInfo) && Objects.equals(homeDirectory, that.homeDirectory) && Objects.equals(shell, that.shell) && Objects.equals(sshValid, that.sshValid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, parentId, provenance, firstName, middleNames, surname, email, userName, password, parentType, level, foundBy, confidence, context, uid, gid, userInfo, homeDirectory, shell, sshValid);
     }
 
     @Override

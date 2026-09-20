@@ -58,6 +58,9 @@ public class DetectAllLocalHostServices extends AbstractCommand<ScannedTargets>
             }
             NMapParser parser = new NMapParser();
             ScannedTargets st = parser.parse(ctx, pr);
+            st.getTargets().forEach(t -> {
+                t.setIpAddress(lt.getTarget().getIpAddress());
+            });
             Optional<Collection<Exploit>> exploits = ctx.apply(new SearchSploitNMap(pr, st));
             if(isPresent(exploits)) {
                 st.setExploits(exploits.get());

@@ -3,6 +3,9 @@ package com.teto.domain.meta;
 public enum Tag {
     LuaScriptEngine,
     LinEnum,
+    LinPeas,
+    PasswordFilesToUse,
+    CreateWordPressUsers,
     ArpNames,
     DetectTCPServices,
     DetectUDPServices,
