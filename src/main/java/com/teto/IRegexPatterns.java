@@ -12,6 +12,9 @@ public interface IRegexPatterns {
     String url = "((((https?|http|ftps?|gopher|telnet|nntp)://)|(mailto:|news:))([-%()_.!~*';/?:@&=+$,A-Za-z0-9])+)";
     String domain = "([a-z0-9]+\\.)*[a-z0-9]+\\.[a-z]+";
     String https = "((https):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)";
+    String username = "^[a-zA-Z0-9._-]+$";
+    String userName = username;
+    String password = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
 
 
     String MATCH_255     = "(?:\\d|[1-9]\\d|1\\d{2}|2(?:[0-4]\\d|5[0-5]))";

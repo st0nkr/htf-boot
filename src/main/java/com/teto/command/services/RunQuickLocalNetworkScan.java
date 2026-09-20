@@ -28,25 +28,17 @@ public class RunQuickLocalNetworkScan extends AbstractCommand<ScannedTargets>
 
     @Override
     public Optional<ScannedTargets> apply(Context ctx) {
-        Optional<ScannedTargets> st = ctx.apply(new RunArpLocal(target));
-        StringBuilder ipAddresses = new StringBuilder();
-        if(st.isPresent()) {
-            for(Target t : st.get().getTargets()) {
-                ipAddresses.append(t.getIpAddress()).append(" ");
-            }
-        }
         Optional<Script> script = getScript(ctx, Provenance.QuickLocalNetworkScan);
         ParserRequest pr = new ParserRequest(target, Provenance.QuickLocalNetworkScan);
         pr.setOutputFileName(createFileName(ctx, target, script.get()));
-        boolean forceReScan = propertyBoolean(ctx, Tag.ForceReScan, false);
         // Create a CliMapper for script
-        if(isPresent(script) && (forceReScan ||!fileExists(pr.getOutputFileName()))) {
+        if(isPresent(script)) {
             String cmd = script.get().getCommandLine();
             if(cmd.contains("$spoofMac")) {
                 cmd = cmd.replace("$spoofMac", generateRandomMacAddress());
             }
             if(cmd.contains("$subnetMask")) {
-                cmd = cmd.replace("$subnetMask", ipAddresses);
+                cmd = cmd.replace("$subnetMask", target.getSubNetMask());
             }
             if(cmd.contains("$xml")) {
                 cmd = cmd.replace("$xml", pr.getOutputFileName());

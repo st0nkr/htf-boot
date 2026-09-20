@@ -15,6 +15,9 @@ import java.util.regex.Pattern;
 
 public interface IRegex extends IFile, IRegexPatterns{
 
+    default List<Pattern> patterns(String...strings) {
+        return Arrays.stream(strings).map(Pattern::compile).toList();
+    }
     default boolean isHost(String host) {
         Pattern pattern = Pattern.compile(domain, Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(host);

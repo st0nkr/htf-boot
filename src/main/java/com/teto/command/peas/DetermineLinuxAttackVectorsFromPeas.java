@@ -1,16 +1,20 @@
 package com.teto.command.peas;
 
 import com.teto.IPeas;
+import com.teto.IRegex;
 import com.teto.ISet;
 import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
 import com.teto.domain.attack.AttackVector;
 import com.teto.domain.local.TargetNode;
-import com.teto.domain.parser.linpeas.LinPeasSubsection;
+import com.teto.domain.parser.linpeas.LinPeasParser;
+import com.teto.domain.parser.linpeas.LinPeasResult;
+import com.teto.domain.provenance.Provenance;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
-public class DetermineLinuxAttackVectorsFromPeas extends AbstractCommand<Void> implements ISet, IPeas {
+public class DetermineLinuxAttackVectorsFromPeas extends AbstractCommand<Void> implements IRegex,ISet, IPeas {
     private final TargetNode node;
 
     public DetermineLinuxAttackVectorsFromPeas(TargetNode node) {
@@ -22,6 +26,12 @@ public class DetermineLinuxAttackVectorsFromPeas extends AbstractCommand<Void> i
         Set<String> subSections = toSet("all");
         Set<String> keyWords = toSet("DB_NAME","DB_USER","DB_PASSWORD");
         return lines(ctx, node,sections, subSections,keyWords);
+    }
+    private Collection<String> credentials2(Context ctx) {
+        Set<String> sections = toSet("all");
+        Set<String> subSections = toSet("all");
+        Set<Pattern> keyWords = toSet(patterns(userName, password));
+        return lineMatcher(ctx, node,sections, subSections,keyWords);
     }
 
     private Collection<String> database(Context ctx, String db) {
@@ -57,7 +67,15 @@ public class DetermineLinuxAttackVectorsFromPeas extends AbstractCommand<Void> i
 
     @Override
     public Optional<Void> apply(Context ctx) {
+        if(node.getPeas() == null) {
+            info(this, "Parsing linpeas output");
+            String linPas = node.getPrivilegeEscalationScripts().get(Provenance.LinPeas);
+            LinPeasParser parser = new LinPeasParser();
+            LinPeasResult peas = parser.parse(ctx, linPas);
+            node.setPeas(peas);
+        }
         Collection<String> credentials = credentials(ctx);
+        Collection<String> credentials2 = credentials2(ctx);
         String database = databases(ctx);
         System.out.println(credentials);
         System.out.println(database);

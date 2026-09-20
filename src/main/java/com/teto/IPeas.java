@@ -7,6 +7,8 @@ import com.teto.domain.parser.linpeas.LinPeasSection;
 import com.teto.domain.parser.linpeas.LinPeasSubsection;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public interface IPeas {
     default LinPeasResult getPeas(Context ctx, TargetNode node) {
@@ -15,7 +17,11 @@ public interface IPeas {
 
     default List<LinPeasSection> filterSections(Context ctx, TargetNode node, Set<String> names) {
         final List<LinPeasSection> sections = new ArrayList<>();
-        for(LinPeasSection section : getPeas(ctx, node).getSections()) {
+        final List<LinPeasSection> sects = getPeas(ctx, node).getSections();
+        if(sects == null || sects.isEmpty()) {
+            return sections;
+        }
+        for(LinPeasSection section : sects) {
             if(names.contains("all")) {
                 sections.add(section);
             } else {
@@ -44,6 +50,18 @@ public interface IPeas {
         return subbers;
     }
 
+    default List<String> filterLinesMatcher(List<String> lines, Set<Pattern> keyWords) {
+        final List<String> result = new ArrayList<>();
+        for(String line : lines) {
+            for(Pattern keyWord : keyWords) {
+                Matcher matcher = keyWord.matcher(line);
+                if(matcher.find()) {
+                    result.add(line);
+                }
+            }
+        }
+        return result;
+    }
     default List<String> filterLines(List<String> lines, Set<String> keyWords) {
         if(keyWords.contains("all")) {
             return lines;
@@ -76,5 +94,25 @@ public interface IPeas {
         }
         return lines;
     }
+
+    default Collection<String> lineMatcher(Context ctx, TargetNode node, Set<String> sects, Set<String> subs, Set<Pattern> keyWords) {
+        final List<LinPeasSection> sections = filterSections(ctx, node, sects);
+        final Collection<String> lines = new TreeSet<>();
+        for(LinPeasSection section : sections) {
+            List<LinPeasSubsection> subSections = filterSubSections(section.getSubsections(), subs);
+            if(subSections == null || subSections.isEmpty()) {
+                continue;
+            }
+
+            for(LinPeasSubsection ss : subSections) {
+                if(ss.getLines() == null || ss.getLines().isEmpty()) {
+                    continue;
+                }
+                lines.addAll(filterLinesMatcher(ss.getLines(), keyWords));
+            }
+        }
+        return lines;
+    }
+
 
 }
