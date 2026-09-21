@@ -10,36 +10,67 @@ public class CompositeRegex implements IString {
     private final Map<String, List<RegexToken>> map = new HashMap<>();
 
     public CompositeRegex(String text) {
-        map.put(text, createTokens(text));
-    }
-
-    public CompositeRegex(String...texts) {
-        for(String text : texts) {
+        if (text != null) {
             map.put(text, createTokens(text));
         }
     }
 
+    public CompositeRegex(String... texts) {
+        if (texts != null) {
+            for (String text : texts) {
+                if (text != null) {
+                    map.put(text, createTokens(text));
+                }
+            }
+        }
+    }
+
+    public CompositeRegex(Collection<String> texts) {
+        if (texts != null) {
+            for (String text : texts) {
+                if (text != null) {
+                    map.put(text, createTokens(text));
+                }
+            }
+        }
+    }
+
     public String getRegexPattern() {
-        StringBuilder sb = new StringBuilder();
-        List<String> list = new ArrayList<>();
-        for(String key : map.keySet()) {
+        Set<String> list = new LinkedHashSet<>();
+        for (String key : map.keySet()) {
+            StringBuilder sb = new StringBuilder();
             List<RegexToken> tokens = map.get(key);
-            for(RegexToken token : tokens) {
+            for (RegexToken token : tokens) {
                 sb.append(token.getPattern());
             }
-            list.add(sb.toString());
+            if (sb.length() > 0) {
+                list.add(sb.toString());
+            }
         }
-        sb = new StringBuilder();
+        if (list.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
         for (String str : list) {
             sb.append(str).append("|");
         }
         return removeLast(sb.toString());
     }
 
+    public Pattern getPattern() {
+        return Pattern.compile(getRegexPattern());
+    }
+
     public Boolean matches(String text) {
-        String str = text;
-        Pattern pattern = Pattern.compile(getRegexPattern());
-        Matcher matcher = pattern.matcher(str);
+        if (text == null) {
+            return false;
+        }
+        String regex = getRegexPattern();
+        if (regex.isEmpty()) {
+            return false;
+        }
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(text);
         return matcher.find();
     }
 

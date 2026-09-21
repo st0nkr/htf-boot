@@ -2,6 +2,7 @@ package com.teto.domain.meta;
 
 public enum Tag {
     LuaScriptEngine,
+    WordPress,
     LinEnum,
     LinPeas,
     PasswordFilesToUse,

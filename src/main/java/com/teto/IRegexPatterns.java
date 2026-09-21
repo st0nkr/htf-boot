@@ -13,7 +13,7 @@ public interface IRegexPatterns {
     String domain = "([a-z0-9]+\\.)*[a-z0-9]+\\.[a-z]+";
     String https = "((https):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)";
     String username = "^[a-zA-Z0-9._-]+$";
-    String userName = username;
+    String userName = "^[a-zA-Z0-9]([._-](?![._-])|[a-zA-Z0-9]){3,18}[a-zA-Z0-9]$";
     String password = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
 
 

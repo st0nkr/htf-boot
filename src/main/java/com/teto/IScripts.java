@@ -15,7 +15,7 @@ import com.teto.domain.target.Target;
 import java.io.File;
 import java.util.Optional;
 
-public interface IScripts extends IOptional, IDuration, ILogger, IProperties, IFile, IConverter, IAttackVector, IMAC {
+public interface IScripts extends IOptional, IDuration, ILogger, IProperties, IFile, IWordList,IConverter, IAttackVector, IMAC {
     default ScriptManager getScriptManager(Context ctx) {
         ScriptManager sm = ctx.fetch(ScriptManager.class);
         if(sm == null) {
@@ -148,6 +148,10 @@ public interface IScripts extends IOptional, IDuration, ILogger, IProperties, IF
 
             if(cmd.contains("$userAgent")) {
                 cmd = cmd.replace("$userAgent", toUserAgent(ctx, target));
+            }
+
+            if(cmd.contains("$wordList")) {
+                cmd = cmd.replace("$wordList", toUserAgent(ctx, target));
             }
             info(this,"Command -> "+cmd);
             Optional<RunCommandResponse> rsp = ctx.apply(new RunCommand(cmd, 0, minutes(30)));

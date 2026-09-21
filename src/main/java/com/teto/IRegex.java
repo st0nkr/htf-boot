@@ -3,7 +3,9 @@ package com.teto;
 import com.teto.command.Context;
 import com.teto.command.regex.LoadRegexPatterns;
 import com.teto.domain.meta.Tag;
+import com.teto.domain.regex.CompositeRegex;
 import com.teto.domain.regex.Regex;
+import com.teto.domain.regex.ShortenRegex;
 import com.teto.domain.target.TargetType;
 import org.apache.commons.collections4.properties.SortedProperties;
 
@@ -17,6 +19,21 @@ public interface IRegex extends IFile, IRegexPatterns{
 
     default List<Pattern> patterns(String...strings) {
         return Arrays.stream(strings).map(Pattern::compile).toList();
+    }
+    default CompositeRegex compositeRegex(String... strings) {
+        return new CompositeRegex(strings);
+    }
+    default CompositeRegex compositeRegex(Collection<String> strings) {
+        return new CompositeRegex(strings);
+    }
+    default ShortenRegex shortenRegex(String regex) {
+        return new ShortenRegex(regex);
+    }
+    default ShortenRegex shortenRegex(Pattern pattern) {
+        return new ShortenRegex(pattern);
+    }
+    default ShortenRegex shortenRegex(Regex regex) {
+        return new ShortenRegex(regex);
     }
     default boolean isHost(String host) {
         Pattern pattern = Pattern.compile(domain, Pattern.CASE_INSENSITIVE);

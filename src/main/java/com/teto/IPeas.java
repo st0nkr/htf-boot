@@ -5,12 +5,16 @@ import com.teto.domain.local.TargetNode;
 import com.teto.domain.parser.linpeas.LinPeasResult;
 import com.teto.domain.parser.linpeas.LinPeasSection;
 import com.teto.domain.parser.linpeas.LinPeasSubsection;
+import com.teto.domain.regex.RegexToken;
+import com.teto.domain.regex.RegexType;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public interface IPeas {
+public interface IPeas extends ISet{
+
+    
     default LinPeasResult getPeas(Context ctx, TargetNode node) {
         return node.getPeas();
     }
@@ -55,8 +59,9 @@ public interface IPeas {
         for(String line : lines) {
             for(Pattern keyWord : keyWords) {
                 Matcher matcher = keyWord.matcher(line);
-                if(matcher.find()) {
-                    result.add(line);
+                while(matcher.find()) {
+                    String group = matcher.group();
+                    result.add(group);
                 }
             }
         }

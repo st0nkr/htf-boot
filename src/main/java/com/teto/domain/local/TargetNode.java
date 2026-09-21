@@ -1,5 +1,6 @@
 package com.teto.domain.local;
 
+import com.teto.domain.fact.Fact;
 import com.teto.domain.parser.linpeas.LinPeasResult;
 import com.teto.domain.provenance.Provenance;
 import com.teto.domain.target.ScannedTargets;
@@ -23,6 +24,8 @@ public class TargetNode {
     private List<String> passwordFiles = new ArrayList<>();
     private LinPeasResult peas;
     private Collection<ScannedUser> wordpressUsers = new TreeSet<>();
+    private List<Fact> facts = new ArrayList<>();
+    private String wordList;
 
     public TargetNode(Target target) {
         this.target = target;

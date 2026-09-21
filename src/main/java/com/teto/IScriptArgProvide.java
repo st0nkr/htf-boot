@@ -8,7 +8,7 @@ import com.teto.domain.user.ScannedUser;
 
 public interface IScriptArgProvide extends IMAC, IScripts,IUserAgent, IPort {
 
-    default IScriptArgProvider sap(Context ctx, Target t, final Script script, final String url) {
+    default IScriptArgProvider sap(Context ctx, Target t, final Script script, String url) {
         return new IScriptArgProvider() {
 
             @Override
@@ -47,6 +47,87 @@ public interface IScriptArgProvide extends IMAC, IScripts,IUserAgent, IPort {
             }
         };
     }
+
+    default IScriptArgProvider sap(Context ctx, TargetNode node, Target t, final Script script) {
+        return new IScriptArgProvider() {
+
+            @Override
+            public String getSpoofMAC() {
+                return generateRandomMacAddress();
+            }
+
+            @Override
+            public String getSubnetMask() {
+                return t.getSubNetMask();
+            }
+
+            @Override
+            public String getOutputFileName() {
+                return createFileName(ctx, t, script);
+            }
+
+            @Override
+            public String getUrl() {
+                return toUrl(t);
+            }
+
+            @Override
+            public String getUserAgent() {
+                return randomFirefox(ctx);
+            }
+
+            @Override
+            public String getWordList() {
+                return node.getWordList();
+            }
+
+            @Override
+            public String getUserName() {
+                return "";
+            }
+        };
+    }
+
+    default IScriptArgProvider sap(Context ctx, Target t, final Script script) {
+        return new IScriptArgProvider() {
+
+            @Override
+            public String getSpoofMAC() {
+                return generateRandomMacAddress();
+            }
+
+            @Override
+            public String getSubnetMask() {
+                return t.getSubNetMask();
+            }
+
+            @Override
+            public String getOutputFileName() {
+                return createFileName(ctx, t, script);
+            }
+
+            @Override
+            public String getUrl() {
+                return toUrl(t);
+            }
+
+            @Override
+            public String getUserAgent() {
+                return randomFirefox(ctx);
+            }
+
+            @Override
+            public String getWordList() {
+                return "";
+            }
+
+            @Override
+            public String getUserName() {
+                return "";
+            }
+        };
+    }
+
 
     default IScriptArgProvider sap(final Context ctx, final TargetNode t, final Script script, final ScannedUser user, final String wordList) {
         return new IScriptArgProvider() {

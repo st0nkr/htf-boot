@@ -11,6 +11,44 @@ import java.util.regex.Pattern;
 
 public interface IString extends IProperties , IList{
 
+    default List<String> extractQuotedStrings(String text) {
+        final List<String> result = new ArrayList<>();
+        Pattern p = Pattern.compile("\"([^\"]*)\"");
+        Matcher m = p.matcher(text);
+        while (m.find()) {
+            result.add(m.group());
+        }
+        p = Pattern.compile("'([^\"]*)'");
+        m = p.matcher(text);
+        while (m.find()) {
+            result.add(m.group());
+        }
+
+        return result;
+    }
+
+    default List<String> extractSingleQuotedStrings(String text) {
+        final List<String> results = new ArrayList<>();
+        if(!text.contains("'")) {
+            return results;
+        }
+        String str = text.replace("'","~~");
+
+        while(str.contains("~~")) {
+            int start = str.indexOf("~~");
+            if(start == -1) break;
+            str = str.substring(start+2);
+            int end = str.indexOf("~~");
+            if(end == -1) {
+                break;
+            }
+            String result = str.substring(0,end);
+            results.add(result);
+            str = str.replace(result+"~~","");
+        }
+        return results;
+    }
+
     default String extractTextBetween(String text, String left, String right) {
         return org.apache.commons.lang3.StringUtils.substringBetween(text, left, right);
     }

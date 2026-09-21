@@ -1,30 +1,31 @@
 package com.teto.command.peas;
 
-import com.teto.IPeas;
-import com.teto.IRegex;
-import com.teto.ISet;
+import com.teto.*;
 import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
 import com.teto.domain.attack.AttackVector;
 import com.teto.domain.local.TargetNode;
+import com.teto.domain.meta.Tag;
 import com.teto.domain.parser.linpeas.LinPeasParser;
 import com.teto.domain.parser.linpeas.LinPeasResult;
 import com.teto.domain.provenance.Provenance;
+import com.teto.domain.regex.CompositeRegex;
 
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DetermineLinuxAttackVectorsFromPeas extends AbstractCommand<Void> implements IRegex,ISet, IPeas {
+public class DetermineLinuxAttackVectorsFromPeas extends AbstractCommand<Void> implements IString, IFact,ITargetBuilder, IRegex,ISet, IPeas {
     private final TargetNode node;
 
     public DetermineLinuxAttackVectorsFromPeas(TargetNode node) {
         this.node = node;
     }
 
-    private Collection<String> credentials(Context ctx) {
+    private Collection<String> wordPressCredentials(Context ctx) {
         Set<String> sections = toSet("all");
         Set<String> subSections = toSet("all");
-        Set<String> keyWords = toSet("DB_NAME","DB_USER","DB_PASSWORD");
+        Set<String> keyWords = toSet("wp-config.php");
         return lines(ctx, node,sections, subSections,keyWords);
     }
     private Collection<String> credentials2(Context ctx) {
@@ -41,7 +42,7 @@ public class DetermineLinuxAttackVectorsFromPeas extends AbstractCommand<Void> i
         return lines(ctx, node,sections, subSections,keyWords);
     }
 
-    private String databases(Context ctx) {
+    private String databases(Context ctx, TargetNode node) {
         Map<String, Integer> map = new HashMap<>();
         map.put("postgres",database(ctx, "postgres").size());
         map.put("mysql", database(ctx, "mysql").size());
@@ -51,18 +52,7 @@ public class DetermineLinuxAttackVectorsFromPeas extends AbstractCommand<Void> i
         map.put("mssql", database(ctx, "mssql").size());
         map.put("mongo",database(ctx, "mongo").size());
         Integer maxCount = map.values().stream().max(Integer::compare).get();
-        String maxKey = map.entrySet().stream().filter(e -> e.getValue().equals(maxCount)).map(Map.Entry::getKey).findFirst().get();
-        return maxKey;
-    }
-
-    private Collection<String> maxCollection(Collection<String> postgres, Collection<String> mysql, Collection<String> oracle, Collection<String> db2, Collection<String> informix, Collection<String> mssql, Collection<String> mongo) {
-        List<Collection<String>> lists = Arrays.asList(postgres,mysql,oracle,db2,informix,mssql,mongo);
-        Collections.sort(lists, (o1, o2) -> {
-            if (o1.size() > o2.size()) return -1;
-            if (o1.size() < o2.size()) return 1;
-            return 0;
-        });
-        return lists.get(0);
+        return map.entrySet().stream().filter(e -> e.getValue().equals(maxCount)).map(Map.Entry::getKey).findFirst().get();
     }
 
     @Override
@@ -74,14 +64,36 @@ public class DetermineLinuxAttackVectorsFromPeas extends AbstractCommand<Void> i
             LinPeasResult peas = parser.parse(ctx, linPas);
             node.setPeas(peas);
         }
-        Collection<String> credentials = credentials(ctx);
-        Collection<String> credentials2 = credentials2(ctx);
-        String database = databases(ctx);
-        System.out.println(credentials);
+        String database = databases(ctx, node);
+        addFact(ctx, node, Tag.Database, database, 80);
+        if("mysql".equals(database)) {
+            if(hasFact(ctx, node, Tag.WordPress)) {
+                final List<String> userNamesPasswords = new ArrayList<>();
+                Collection<String> creds = wordPressCredentials(ctx);
+                for(String cred : creds) {
+
+                    creds.addAll(extractSingleQuotedStrings(cred));
+                }
+                System.out.println("Inspect "+creds);
+            }
+        }
         System.out.println(database);
         final List<AttackVector> vectors = new ArrayList<>();
 
         return Optional.empty();
+    }
+
+    private List<String> extractPatterns(String credential, CompositeRegex cr) {
+        final List<String> ret = new ArrayList<>();
+        String reg = cr.getRegexPattern();
+        String shortened = shortenRegex(cr.getRegexPattern()).getShortenedPattern();
+        Pattern regex = Pattern.compile(reg);
+        Matcher matcher = regex.matcher(credential);
+        while(matcher.find()) {
+            String group = matcher.group();
+            ret.add(group);
+        }
+        return ret;
     }
 
 
