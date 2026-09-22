@@ -13,6 +13,7 @@ import com.teto.domain.target.ScannedTargets;
 import com.teto.domain.target.Target;
 import com.teto.domain.url.Url;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Optional;
 

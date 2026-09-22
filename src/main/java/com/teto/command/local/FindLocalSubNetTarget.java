@@ -1,8 +1,6 @@
 package com.teto.command.local;
 
-import com.teto.IDuration;
-import com.teto.IJSON;
-import com.teto.INetwork;
+import com.teto.*;
 import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
 import com.teto.command.exec.RunCommand;
@@ -14,7 +12,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Optional;
 
-public class FindLocalSubNetTarget extends AbstractCommand<Target> implements IJSON, INetwork, IDuration {
+public class FindLocalSubNetTarget extends AbstractCommand<Target> implements IJSON, IMerge, ITarget, INetwork, IDuration {
     @Override
     public Optional<Target> apply(Context ctx) {
         String cmd = "ip -j address";
@@ -40,10 +38,31 @@ public class FindLocalSubNetTarget extends AbstractCommand<Target> implements IJ
         ArrayList addrs = (ArrayList) lhm.get("addr_info");
         for(int idx = 0 ; idx < addrs.size(); idx++) {
             LinkedHashMap addr = (LinkedHashMap) addrs.get(idx);
+
             String family = addr.get("family").toString();
             if("inet".equalsIgnoreCase(family)) {
+                String local = addr.get("local").toString();
                 Integer prefixLen = Integer.parseInt(addr.get("prefixlen").toString());
                 t.setSubNetMask(t.getIpAddress() + "/" + prefixLen);
+                if(!local.equals(t.getIpAddress())) {
+                    Target merged = merge(new Target(), t);
+                    merged.setIpAddress(local);
+                    merged.setUri(local);
+                    if(isIPV4(local)) {
+                        merged.setTargetType(TargetType.Ipv4.name());
+                        merged.setSubNetMask(local + "/" + prefixLen);
+                    }
+                    if(isIPV6(local)) {
+                        merged.setTargetType(TargetType.Ipv6.name());
+                    }
+
+                    if(t.getShared() == null) {
+                        t.setShared(new ArrayList<>());
+                    }
+                    t.getShared().add(merged);
+                }
+
+
             }
         }
         return t;

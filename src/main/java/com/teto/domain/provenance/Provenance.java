@@ -153,7 +153,7 @@ public enum Provenance {
     LocateWebForms,
     LocateLoginWebForms,
     ProbeWebSite,
-    Wappalyzer,
+    Wappy,
     SpiderFootDomain,
     GrafW00f,
     Nikto,
@@ -968,7 +968,7 @@ public enum Provenance {
 
     public static Provenance[] getScripts() {
         return new  Provenance[] {
-                Wappalyzer, HttpRecon,
+                Wappy, HttpRecon,
                 WafDetect, WafFingerPrint,AckScan,
                 DnsRecon, DnsEnum, WafW00f, WebTech, theHarvester,
                 Fierce, LoadBalance, Dmitry, DnsMap, Nikto,

@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -126,6 +127,7 @@ public class Target implements Comparable<Target> {
     private String processors;
     private String hardwarePlatform;
     private String osName;
+    private transient List<Target> shared;
 
     public static Target create() {
         Target t = new Target();

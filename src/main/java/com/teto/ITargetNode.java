@@ -1,6 +1,7 @@
 package com.teto;
 
 import com.teto.command.Context;
+import com.teto.command.target.SaveTargetNode;
 import com.teto.domain.ipaddress.IPAddress;
 import com.teto.domain.local.TargetNode;
 import com.teto.domain.target.TargetType;
@@ -20,5 +21,9 @@ public interface ITargetNode extends ITarget, INetwork{
         String ip1 = me.getIp();
         String ip2 = node.getTarget().getIpAddress();
         return ip1.equalsIgnoreCase(ip2);
+    }
+
+    default void save(Context ctx, TargetNode tn, String checkPoint) {
+        ctx.apply(new SaveTargetNode(tn, checkPoint));
     }
 }

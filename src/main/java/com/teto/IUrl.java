@@ -37,12 +37,50 @@ public interface IUrl extends IOptional{
             if(url.getUrl() != null) {
                 String u = url.getUrl().toLowerCase();
                 for(String endsWith : endsWiths) {
-                    if (u.endsWith(endsWith.toLowerCase())) {
+                    if (u.toLowerCase().endsWith(endsWith.toLowerCase())) {
                         matches.add(url);
                     }
                 }
             }
         }
         return optional(matches);
+    }
+
+    default Collection<Url> getMatchingUrlsEndsWith(Context ctx, TargetNode node, String...endsWiths) {
+        Collection<Url> urls = node.getScannedTargets().getUrls();
+        if(urls == null) {
+            return null;
+        }
+        final Collection<Url> matches = new TreeSet<>();
+        for(Url url : urls) {
+            if(url.getUrl() != null) {
+                String u = url.getUrl().toLowerCase();
+                for(String endsWith : endsWiths) {
+                    if (u.toLowerCase().endsWith(endsWith.toLowerCase())) {
+                        matches.add(url);
+                    }
+                }
+            }
+        }
+        return matches;
+    }
+
+    default Collection<Url> getMatchingUrlsContains(Context ctx, TargetNode node, String...contains) {
+        Collection<Url> urls = node.getScannedTargets().getUrls();
+        if(urls == null) {
+            return null;
+        }
+        final Collection<Url> matches = new TreeSet<>();
+        for(Url url : urls) {
+            if(url.getUrl() != null) {
+                String u = url.getUrl().toLowerCase();
+                for(String contain : contains) {
+                    if (u.toLowerCase().contains(contain.toLowerCase())) {
+                        matches.add(url);
+                    }
+                }
+            }
+        }
+        return matches;
     }
 }

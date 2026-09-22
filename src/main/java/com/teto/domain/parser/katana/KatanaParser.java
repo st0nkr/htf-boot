@@ -1,4 +1,4 @@
-package com.teto.domain.parser.gobuster;
+package com.teto.domain.parser.katana;
 
 import com.teto.ICSV;
 import com.teto.IFile;
@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class GoBusterParser  implements IFile, ICSV {
+public class KatanaParser implements IFile, ICSV {
 
     public ScannedTargets parse(Context ctx, Target parent, String fileName) {
         ScannedTargets st = new ScannedTargets();
@@ -25,20 +25,15 @@ public class GoBusterParser  implements IFile, ICSV {
     }
 
     private List<Url> convertToUrls(Context ctx, Target parent, List<String> contents) {
-        List<String[][]> records = toRecords(contents);
         final List<Url> urls = new ArrayList<>();
-        for(String[][] record : records) {
+        for(String line : contents) {
             Url url = new Url();
-            url.setName(record[0][0]);
-            url.setResponseCode(Integer.parseInt(record[0][1]));
-            url.setSize(Integer.parseInt(record[0][2]));
-            url.setProvenance(Provenance.GoBusterDir.name());
+            url.setName(line);
+            url.setProvenance(Provenance.Katana.name());
             url.setParentId(parent.getId());
             url.setParentType(parent.getTargetType());
             url.setLevel(parent.getLevel()+1);
-            if(record[0].length > 3) {
-                url.setUrl(record[0][3]);
-            }
+            url.setUrl(line);
             urls.add(url);
         }
         return urls;

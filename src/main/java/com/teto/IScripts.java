@@ -44,6 +44,9 @@ public interface IScripts extends IOptional, IDuration, ILogger, IProperties, IF
             if(cmd.contains("$userName")) {
                 cmd = cmd.replace("$userName", sap.getUserName());
             }
+            if(cmd.contains("$ip")) {
+                cmd = cmd.replace("$ip", target.getIpAddress());
+            }
             if(cmd.contains("$spoofMac")) {
                 cmd = cmd.replace("$spoofMac", sap.getSpoofMAC());
             }
@@ -161,8 +164,12 @@ public interface IScripts extends IOptional, IDuration, ILogger, IProperties, IF
         return empty();
     }
 
-    default String createFileName(Context ctx, Target target, Script script) {
+    default String getScanDirectory(Context ctx) {
         String dir = property(ctx, Tag.ScanDirectory);
+        return dir;
+    }
+    default String createFileName(Context ctx, Target target, Script script) {
+        String dir = getScanDirectory(ctx);
         String xtn = getExtension(script);
         return dir+ File.separator+script.getName()+"-"+target.getIpAddress()+xtn;
     }

@@ -3,11 +3,15 @@ package com.teto.command.reconnaissance;
 import com.teto.*;
 import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
-import com.teto.command.dirbuster.GatherDirBusterDirectories;
 import com.teto.command.dirsearch.GatherDirSearchDirectories;
+import com.teto.command.facts.ApplyFacts;
 import com.teto.command.gobuster.GatherGoBusterDirectories;
+import com.teto.command.katana.GatherKatanaDirectories;
 import com.teto.command.merge.MergeScannedTargets;
 import com.teto.command.nikto.GatherNiktoData;
+import com.teto.command.wappalyzer.Wappy;
+import com.teto.command.webtech.WebTech;
+import com.teto.command.whatweb.WhatWeb;
 import com.teto.command.wordpress.EnumerateWordPressUsers;
 import com.teto.domain.local.TargetNode;
 import com.teto.domain.meta.Tag;
@@ -44,18 +48,13 @@ public class Reconnaissance extends AbstractCommand<Void> implements ITargetNode
         if (httpTargets != null) {
             info(this, "Detected "+httpTargets.size()+" HTTP Targets");
             for(Target httpTarget : httpTargets) {
-                //ctx.apply(new GatherDirBusterDirectories(node, httpTarget));
-                ctx.apply(new GatherDirSearchDirectories(node, httpTarget));
-                ctx.apply(new GatherGoBusterDirectories(node, httpTarget));
+                ctx.apply(new GatherWebServerUrls(node, httpTarget));
 
-                ctx.apply(new GatherNiktoData(node, httpTarget));
-                Optional<Collection<Url>> wpus = getMatchingUrls(ctx, node, toSet(Provenance.Nikto, Provenance.GoBusterDir, Provenance.DirSearch), "wordpress", "wordpress/");
-                if(isPresent(wpus)) {
+                Collection<Url> urls = getMatchingUrlsEndsWith(ctx, node, "wordpress", "wordpress/");
+                if(urls != null && !urls.isEmpty()) {
                     addFact(ctx, node, Tag.WordPress, true, 100);
-                    Collection<Url> urls = wpus.get();
-                    if(urls != null && !urls.isEmpty()) {
-                        ctx.apply(new EnumerateWordPressUsers(node, urls));
-                    }
+                    ctx.apply(new EnumerateWordPressUsers(node, urls));
+                    save(ctx, node,"EnumerateWordPressUsers");
                 }
 
             }
@@ -65,9 +64,7 @@ public class Reconnaissance extends AbstractCommand<Void> implements ITargetNode
         if (httpsTargets != null) {
             info(this, "Detected "+httpsTargets.size()+" HTTPS Targets");
             for(Target httpsTarget : httpsTargets) {
-                ctx.apply(new GatherDirSearchDirectories(node, httpsTarget));
-                ctx.apply(new GatherGoBusterDirectories(node, httpsTarget));
-                ctx.apply(new GatherNiktoData(node, httpsTarget));
+                ctx.apply(new GatherWebServerUrls(node, httpsTarget));
                 Optional<Collection<Url>> wpus = getMatchingUrls(ctx, node, toSet(Provenance.Nikto, Provenance.GoBusterDir, Provenance.DirSearch),"wordpress", "wordpress/");
                 if(isPresent(wpus)) {
                     Collection<Url> urls = wpus.get();

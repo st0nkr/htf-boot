@@ -11,6 +11,7 @@ import com.teto.domain.provenance.Provenance;
 import com.teto.domain.target.ScannedTargets;
 import com.teto.domain.target.Target;
 import com.teto.domain.target.TargetType;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;

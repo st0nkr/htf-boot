@@ -18,61 +18,89 @@ import com.teto.domain.target.Target;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 
 public class DetectAllLocalHostServices extends AbstractCommand<ScannedTargets>
-        implements IScripts, IMAC, IDuration, IFile, ILogger, ILocalNetwork {
-    private final TargetNode lt;
+        implements IScripts, IMAC, IDuration, IFile, ILogger, ISet, ILocalNetwork {
+    private final TargetNode targetNode;
 
     public DetectAllLocalHostServices(TargetNode lt) {
-        this.lt = lt;
+        this.targetNode = lt;
     }
 
     @Override
     public Optional<ScannedTargets> apply(Context ctx) {
-        Target target = lt.getTarget();
+        Target target = targetNode.getTarget();
         final ScannedTargets scannedTargets = new ScannedTargets();
         Provenance[] provs = new Provenance[] { Provenance.DetectTCPServices, Provenance.DetectUDPServices};
         for(Provenance prov : provs) {
             Optional<Script> script = getScript(ctx, prov);
             info(this,"Detect Services for "+target.getIpAddress());
             ParserRequest pr = new ParserRequest(target, prov);
-            pr.setOutputFileName(createFileName(ctx, target, script.get()));
+            String fileName = createFileName(ctx, target, script.get());
+            pr.setOutputFileName(fileName);
             boolean forceReScan = propertyBoolean(ctx, Tag.ForceReScan, false);
             // Create a CliMapper for script
             if(isPresent(script) && (forceReScan ||!fileExists(pr.getOutputFileName()))) {
-                String cmd = script.get().getCommandLine();
-                if(cmd.contains("$spoofMac")) {
-                    cmd = cmd.replace("$spoofMac", generateRandomMacAddress());
-                }
-                if(cmd.contains("$ip")) {
-                    cmd = cmd.replace("$ip", target.getIpAddress());
-                }
-                if(cmd.contains("$xml")) {
-                    cmd = cmd.replace("$xml", pr.getOutputFileName());
-                }
-                info(this,"Command -> "+cmd);
-                Optional<RunCommandResponse> rsp = ctx.apply(new RunCommand(cmd, 0, minutes(30)));
-                if(isPresent(rsp)) {
-
-                }
+                Optional<RunCommandResponse> rsp = runScript(ctx, target, script.get(), sap(ctx, target, fileName));
             }
             NMapParser parser = new NMapParser();
             ScannedTargets st = parser.parse(ctx, pr);
             st.getTargets().forEach(t -> {
-                t.setIpAddress(lt.getTarget().getIpAddress());
+                t.setIpAddress(targetNode.getTarget().getIpAddress());
             });
             Optional<Collection<Exploit>> exploits = ctx.apply(new SearchSploitNMap(pr, st));
             if(isPresent(exploits)) {
                 st.setExploits(exploits.get());
             }
-            if(lt.getScannedTargets() == null) {
-                lt.setScannedTargets(st);
+            if(targetNode.getScannedTargets() == null) {
+                targetNode.setScannedTargets(st);
             } else {
-                lt.getScannedTargets().add(st);
+                targetNode.getScannedTargets().add(st);
             }
             scannedTargets.add(st);
         }
         return optional(scannedTargets);
+    }
+
+    private IScriptArgProvider sap(final Context ctx, final Target target, final String fileName) {
+        return new  IScriptArgProvider() {
+
+            @Override
+            public String getSpoofMAC() {
+                return generateRandomMacAddress();
+            }
+
+            @Override
+            public String getSubnetMask() {
+                return "";
+            }
+
+            @Override
+            public String getOutputFileName() {
+                return fileName;
+            }
+
+            @Override
+            public String getUrl() {
+                return toUrl(target);
+            }
+
+            @Override
+            public String getUserAgent() {
+                return randomFirefox(ctx);
+            }
+
+            @Override
+            public String getWordList() {
+                return "";
+            }
+
+            @Override
+            public String getUserName() {
+                return "";
+            }
+        };
     }
 
 }

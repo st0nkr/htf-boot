@@ -48,6 +48,7 @@ public class GatherTargetInfoUsingLinuxSSH extends AbstractCommand<Void> impleme
             info(this,"No ssh service detected");
             return empty();
         }
+        info(this, "ssh service detected...attempting password cracking etc");
         final List<ScannedUser> users = getUsersWithPasswords(ctx, node, "ssh");
         if(users == null || users.isEmpty()) {
             info(this,"No users with passwords found for ssh service");

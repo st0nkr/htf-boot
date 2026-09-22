@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public interface ITarget extends IProperties, ICSV, ICPE {
+public interface ITarget extends IProperties, ICSV, ICPE, IIPAddresses {
 
     default boolean isWindows(Context ctx, Target os) {
         if(os.getOsFamily() != null && os.getOsFamily().equalsIgnoreCase("Windows")) {
@@ -35,6 +35,13 @@ public interface ITarget extends IProperties, ICSV, ICPE {
         return false;
     }
 
+    default boolean isIPV4(String ip) {
+        return isValidIPV4(ip);
+    }
+
+    default boolean isIPV6(String ip) {
+        return isValidIPV6(ip);
+    }
     default boolean isIPV4(Target t) {
         TargetType tt = TargetType.fromString(t.getTargetType());
         return TargetType.Ipv4.equals(tt);
@@ -86,7 +93,6 @@ public interface ITarget extends IProperties, ICSV, ICPE {
     }
 
     default Target getTarget(Context ctx, TargetNode node, TargetType tt) {
-        final List<Target> targets = new ArrayList<>();
         for(Target target : node.getScannedTargets().getTargets()) {
             TargetType tt1 = TargetType.fromString(target.getTargetType());
             if(tt.equals(tt1)) {

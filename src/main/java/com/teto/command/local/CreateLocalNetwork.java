@@ -29,42 +29,30 @@ public class CreateLocalNetwork extends AbstractCommand<TargetNetwork> implement
             info(this,"Found "+targets.size()+" targets on local network");
             Target localMe = extractLocalMe(targets);
             if(localMe != null) {
+                targets = removeIpTargets(localMe.getIpAddress(), targets);
                 final TargetNetwork tn = new TargetNetwork(localMe);
                 for(Target ip : targets) {
-                    if(!ip.getTargetType().equals(TargetType.LocalMe.name())) {
-                        ctx.apply(new IdentifyTargetTypeByName(ip));
-                        if (!ip.getIpAddress().equalsIgnoreCase(localMe.getIpAddress())) {
-                            // Set the password files to use during cracking
-                            TargetNode tnode = new TargetNode(ip);
-                            tnode.setWordList(ROCK_YOU);
-                            tnode.setPasswordFiles(Arrays.asList(passwordFiles));
-                            List<ScannedUser> wpUsers = createWordPressUsers(ctx, ip);
-                            tnode.setWordpressUsers(wpUsers);
-                            tn.getTargetNodes().add(tnode);
-                        }
+                    ctx.apply(new IdentifyTargetTypeByName(ip));
+                    // Set the password files to use during cracking
+                    Optional<TargetNode> tnode = ctx.apply(new CreateTargetNode(ip, passwordFiles));
+                    if(isPresent(tnode)) {
+                        tn.getTargetNodes().add(tnode.get());
                     }
                 }
                 return optional(tn);
             }
-
         }
         return empty();
     }
 
-    private List<ScannedUser> createWordPressUsers(Context ctx, Target target) {
-        String users = property(ctx, Tag.CreateWordPressUsers);
-        String[] unames = users.split(",");
-        final List<ScannedUser> usrs = new ArrayList<>();
-        if(!users.isEmpty()) {
-            for (String uname : unames) {
-                String[] parts = uname.split(":");
-                String userName = parts[0];
-                String password = (parts.length == 1) ? "" : parts[1];
-                Optional<ScannedUser> user = ctx.apply(new CreateWordPressUser(target, userName, password));
-                usrs.add(user.get());
+    private Collection<Target> removeIpTargets(String ipAddress, Collection<Target> targets) {
+        final Collection<Target> others = new HashSet<>();
+        for(Target target : targets) {
+            if(!ipAddress.equals(target.getIpAddress())) {
+                others.add(target);
             }
         }
-        return usrs;
+        return others;
     }
 
     private Target extractLocalMe(Collection<Target> targets) {

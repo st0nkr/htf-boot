@@ -3,6 +3,7 @@ package com.teto.domain.local;
 import com.teto.domain.fact.Fact;
 import com.teto.domain.parser.linpeas.LinPeasResult;
 import com.teto.domain.provenance.Provenance;
+import com.teto.domain.stage.Stage;
 import com.teto.domain.target.ScannedTargets;
 import com.teto.domain.target.Target;
 import com.teto.domain.target.TargetType;
@@ -26,8 +27,18 @@ public class TargetNode {
     private Collection<ScannedUser> wordpressUsers = new TreeSet<>();
     private List<Fact> facts = new ArrayList<>();
     private String wordList;
-
+    private String checkPoint;
+    private List<Stage> stagesCompleted = new ArrayList<>();
     public TargetNode(Target target) {
         this.target = target;
+    }
+
+    public boolean addSubStage(Stage stage) {
+        if(stagesCompleted.isEmpty()) {
+            return false;
+        }
+        stage = stagesCompleted.get(stagesCompleted.size() - 1);
+        stage.addSubStage(stage);
+        return true;
     }
 }

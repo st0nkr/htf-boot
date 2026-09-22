@@ -7,6 +7,7 @@ import com.teto.command.AbstractCommand;
 import com.teto.command.Context;
 import com.teto.command.attack.IdentifyAttackVectors;
 import com.teto.command.password.CrackPasswords;
+import com.teto.command.peas.MergePeasInfo;
 import com.teto.command.reconnaissance.Reconnaissance;
 import com.teto.command.ssh.GatherTargetInfoUsingSSH;
 import com.teto.domain.local.TargetNetwork;
@@ -34,6 +35,7 @@ public class Raven extends AbstractCommand<Void> implements IScripts, ILocalNetw
                 ctx.apply(new Reconnaissance(node));
                 ctx.apply(new CrackPasswords(node));
                 ctx.apply(new GatherTargetInfoUsingSSH(node));
+                ctx.apply(new MergePeasInfo(node));
                 ctx.apply(new IdentifyAttackVectors(node));
             }
         }

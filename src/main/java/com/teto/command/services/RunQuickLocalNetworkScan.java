@@ -30,25 +30,54 @@ public class RunQuickLocalNetworkScan extends AbstractCommand<ScannedTargets>
     public Optional<ScannedTargets> apply(Context ctx) {
         Optional<Script> script = getScript(ctx, Provenance.QuickLocalNetworkScan);
         ParserRequest pr = new ParserRequest(target, Provenance.QuickLocalNetworkScan);
-        pr.setOutputFileName(createFileName(ctx, target, script.get()));
+        String fileName = createFileName(ctx, target, script.get());
+        pr.setOutputFileName(fileName);
         // Create a CliMapper for script
         if(isPresent(script)) {
-            String cmd = script.get().getCommandLine();
-            if(cmd.contains("$spoofMac")) {
-                cmd = cmd.replace("$spoofMac", generateRandomMacAddress());
-            }
-            if(cmd.contains("$subnetMask")) {
-                cmd = cmd.replace("$subnetMask", target.getSubNetMask());
-            }
-            if(cmd.contains("$xml")) {
-                cmd = cmd.replace("$xml", pr.getOutputFileName());
-            }
-            info(this,"Command -> "+cmd);
-            Optional<RunCommandResponse> rsp = ctx.apply(new RunCommand(cmd, 0, minutes(30)));
+            Optional<RunCommandResponse> rsp = runScript(ctx, target, script.get(), sap(ctx, target, fileName));
         }
         NMapParser parser = new NMapParser();
         ScannedTargets stargs = parser.parse(ctx, pr);
         return optional(stargs);
+    }
+
+    private IScriptArgProvider sap(final Context ctx, final Target target, final String fileName) {
+        return new IScriptArgProvider() {
+            @Override
+            public String getSpoofMAC() {
+                return generateRandomMacAddress();
+            }
+
+            @Override
+            public String getSubnetMask() {
+                return target.getSubNetMask();
+            }
+
+            @Override
+            public String getOutputFileName() {
+                return fileName;
+            }
+
+            @Override
+            public String getUrl() {
+                return toUrl(target);
+            }
+
+            @Override
+            public String getUserAgent() {
+                return randomFirefox(ctx);
+            }
+
+            @Override
+            public String getWordList() {
+                return "";
+            }
+
+            @Override
+            public String getUserName() {
+                return "";
+            }
+        };
     }
 
 
